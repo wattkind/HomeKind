@@ -26,6 +26,7 @@ on conflict (id) do nothing;
 -- 3 folder segments, and use a regex check so a non-uuid second segment
 -- fails the `like` match instead of reaching the cast.
 create policy device_documents_own_household on storage.objects for all
+  to authenticated
   using (
     bucket_id = 'device-documents'
     and name like 'households/%'

@@ -188,23 +188,28 @@ alter table households enable row level security;
 comment on table households is 'Tenant root. One household = one home; owner_id is the creating user. No insert policy: households are created exclusively via the create_household_with_defaults RPC (SECURITY DEFINER) so creation cannot race RLS.';
 
 create policy households_own_household on households for select
+  to authenticated
   using (id in (select public.current_household_ids()));
 
 create policy households_own_household_update on households for update
+  to authenticated
   using (owner_id = auth.uid());
 
 create policy households_own_household_delete on households for delete
+  to authenticated
   using (owner_id = auth.uid());
 
 alter table household_members enable row level security;
 
 create policy household_members_own_household on household_members for select
+  to authenticated
   using (household_id in (select public.current_household_ids()));
 
 -- A member may remove themself, or the household owner may remove any member
 -- other than themself (owner leaves by deleting the household, not by removing
 -- their own membership row).
 create policy household_members_own_household_delete on household_members for delete
+  to authenticated
   using (
     (user_id = auth.uid())
     or (
@@ -216,6 +221,7 @@ create policy household_members_own_household_delete on household_members for de
 -- Update is limited in practice to warranty_threshold_days; a member may only
 -- ever touch their own row, and cannot use the update to reassign it.
 create policy household_members_own_household_update on household_members for update
+  to authenticated
   using (user_id = auth.uid())
   with check (user_id = auth.uid());
 
@@ -225,13 +231,16 @@ create policy household_members_own_household_update on household_members for up
 alter table invites enable row level security;
 
 create policy invites_own_household on invites for select
+  to authenticated
   using (household_id in (select public.current_household_ids()));
 
 create policy invites_own_household_insert on invites for insert
+  to authenticated
   with check (household_id in (select public.current_household_ids()) and created_by = auth.uid());
 
 -- Delete allows any member to revoke an outstanding invite.
 create policy invites_own_household_delete on invites for delete
+  to authenticated
   using (household_id in (select public.current_household_ids()));
 
 -- No select-by-token policy for anon: an unauthenticated invitee cannot look up
@@ -240,26 +249,31 @@ create policy invites_own_household_delete on invites for delete
 
 alter table rooms enable row level security;
 create policy rooms_own_household on rooms for all
+  to authenticated
   using (household_id in (select public.current_household_ids()))
   with check (household_id in (select public.current_household_ids()));
 
 alter table devices enable row level security;
 create policy devices_own_household on devices for all
+  to authenticated
   using (household_id in (select public.current_household_ids()))
   with check (household_id in (select public.current_household_ids()));
 
 alter table documents enable row level security;
 create policy documents_own_household on documents for all
+  to authenticated
   using (household_id in (select public.current_household_ids()))
   with check (household_id in (select public.current_household_ids()));
 
 alter table push_subscriptions enable row level security;
 create policy push_subscriptions_own_household on push_subscriptions for all
+  to authenticated
   using (user_id = auth.uid())
   with check (user_id = auth.uid() and household_id in (select public.current_household_ids()));
 
 alter table warranty_notifications enable row level security;
 create policy warranty_notifications_own_household on warranty_notifications for all
+  to authenticated
   using (household_id in (select public.current_household_ids()))
   with check (household_id in (select public.current_household_ids()));
 
@@ -268,6 +282,7 @@ alter table ai_usage enable row level security;
 comment on table ai_usage is 'Per-call AI token usage, scoped to a household, for cost tracking/budgeting. No insert/update/delete policy: written by the service role only.';
 
 create policy ai_usage_own_household on ai_usage for select
+  to authenticated
   using (household_id in (select public.current_household_ids()));
 
 -- === Onboarding RPC ==============================================================
