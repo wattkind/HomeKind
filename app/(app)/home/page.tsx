@@ -1,5 +1,6 @@
 import { createClient, requireHousehold } from "@/lib/supabase/server";
 import { DeviceBrowser } from "@/components/device-browser";
+import { WarrantyBanner } from "@/components/warranty-banner";
 
 export const dynamic = "force-dynamic";
 
@@ -40,7 +41,17 @@ export default async function HomePage({
       warrantyThresholdDays={warrantyThresholdDays}
       initialFilter={filter === "expiring" ? "expiring" : null}
       initialRoomId={room ?? null}
-      banner={undefined /* P5: warranty banner slot */}
+      banner={
+        <WarrantyBanner
+          devices={(devices ?? []).map(({ id, name, warranty_end }) => ({
+            id,
+            name,
+            warranty_end,
+            deleted_at: null,
+          }))}
+          thresholdDays={warrantyThresholdDays}
+        />
+      }
     />
   );
 }
