@@ -98,9 +98,17 @@ export async function streamDeviceChat(opts: {
   });
 }
 
+/** Token usage for one findManualCandidate call, exposed so callers can
+ * record spend even when the model didn't return a usable candidate (a
+ * refusal or an unparsable response still costs tokens). */
+export interface ManualSearchUsage {
+  inputTokens: number;
+  outputTokens: number;
+}
+
 export type ManualCandidate =
-  | { ok: true; url: string; title: string; source: string }
-  | { ok: false; error: AiFailureCode };
+  | { ok: true; url: string; title: string; source: string; usage?: ManualSearchUsage }
+  | { ok: false; error: AiFailureCode; usage?: ManualSearchUsage };
 
 /**
  * Non-streaming, best-effort web search for the official manufacturer
@@ -139,8 +147,16 @@ export async function findManualCandidate(opts: {
     return { ok: false, error: toFailureCode(err) };
   }
 
+  // usage is available as soon as we have a response at all, regardless of
+  // whether the model produced a usable candidate below — attach it to
+  // every return path from here on so callers can record real spend.
+  const usage: ManualSearchUsage = {
+    inputTokens: response.usage.input_tokens,
+    outputTokens: response.usage.output_tokens,
+  };
+
   if (response.stop_reason === "refusal") {
-    return { ok: false, error: "refusal" };
+    return { ok: false, error: "refusal", usage };
   }
 
   const text = response.content
@@ -150,9 +166,9 @@ export async function findManualCandidate(opts: {
 
   const candidate = parseManualCandidateJson(text);
   if (!candidate) {
-    return { ok: false, error: "api_error" };
+    return { ok: false, error: "api_error", usage };
   }
-  return candidate;
+  return { ...candidate, usage };
 }
 
 /** Defensively finds the last {...} block in `text` and parses it. The model
