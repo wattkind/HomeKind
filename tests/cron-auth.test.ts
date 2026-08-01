@@ -1,5 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+// The route (and lib/supabase/admin, lib/push/send) import "server-only",
+// which throws unconditionally unless Next's webpack config aliases it away
+// for a real server bundle. Under plain Node/vitest there is no such alias,
+// so stub it to a no-op — this only guards against accidental client-bundle
+// imports and has no bearing on the auth-gate logic under test.
+vi.mock("server-only", () => ({}));
+
 // Unit-tests only the auth gate at the top of app/api/cron/warranty-check/route.ts
 // (CRON_SECRET presence + constant-time Bearer comparison) without touching a
 // real database. lib/supabase/admin's createAdminClient() throws synchronously

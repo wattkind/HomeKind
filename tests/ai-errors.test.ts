@@ -8,7 +8,7 @@ import { AiCodedError, toFailureCode, type AiFailureCode } from "../lib/ai/error
 // HTTP status, so building fakes through it gives us real instanceof matches
 // against exactly what toFailureCode() checks.
 function sdkError(status: number): Error {
-  return Anthropic.APIError.generate(status, { error: { message: "boom" } }, "boom", undefined);
+  return Anthropic.APIError.generate(status, { error: { message: "boom" } }, "boom", new Headers());
 }
 
 describe("toFailureCode", () => {
