@@ -270,6 +270,10 @@ textarea:focus-visible {
   background: #ffe9d6;
   color: #b45309;
 }
+.banner.error {
+  background: var(--error-surface);
+  color: var(--error-accent);
+}
 .banner p { margin: 0; }
 .banner button {
   flex-shrink: 0;
