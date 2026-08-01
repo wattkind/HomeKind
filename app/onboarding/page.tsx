@@ -24,9 +24,9 @@ export default async function OnboardingPage() {
       <p className="eyebrow">Get started</p>
       <h1>Set up your household</h1>
       <p>
-        Give your household a name to get going. If someone's already invited you to
-        join theirs, you don't need this — just open the invite link they sent you and
-        you'll be added straight in.
+        Give your household a name to get going. If someone&apos;s already invited you to
+        join theirs, you don&apos;t need this — just open the invite link they sent you and
+        you&apos;ll be added straight in.
       </p>
 
       <div className="card" style={{ marginTop: "24px" }}>

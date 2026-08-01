@@ -23,7 +23,7 @@ export default async function SettingsPage() {
       <nav style={{ display: "grid", gap: "14px" }} aria-label="Settings">
         <Link href="/settings/members" className="card">
           <h3>Members &amp; invites</h3>
-          <p>See who's in your household, invite someone new, or leave.</p>
+          <p>See who&apos;s in your household, invite someone new, or leave.</p>
         </Link>
         <Link href="/settings/rooms" className="card">
           <h3>Rooms</h3>
@@ -31,7 +31,7 @@ export default async function SettingsPage() {
         </Link>
         <Link href="/settings/notifications" className="card">
           <h3>Notifications</h3>
-          <p>Choose when you're reminded about warranties running out.</p>
+          <p>Choose when you&apos;re reminded about warranties running out.</p>
         </Link>
       </nav>
 

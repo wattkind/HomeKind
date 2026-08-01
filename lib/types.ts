@@ -26,6 +26,7 @@ export interface Database {
           owner_id?: string;
           created_at?: string;
         };
+        Relationships: [];
       };
       household_members: {
         Row: {
@@ -49,6 +50,7 @@ export interface Database {
           warranty_threshold_days?: 30 | 60 | 90;
           created_at?: string;
         };
+        Relationships: [];
       };
       invites: {
         Row: {
@@ -81,6 +83,7 @@ export interface Database {
           accepted_at?: string | null;
           created_at?: string;
         };
+        Relationships: [];
       };
       rooms: {
         Row: {
@@ -101,6 +104,7 @@ export interface Database {
           name?: string;
           created_at?: string;
         };
+        Relationships: [];
       };
       devices: {
         Row: {
@@ -148,6 +152,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       documents: {
         Row: {
@@ -189,6 +194,7 @@ export interface Database {
           created_by?: string | null;
           created_at?: string;
         };
+        Relationships: [];
       };
       push_subscriptions: {
         Row: {
@@ -218,6 +224,7 @@ export interface Database {
           auth?: string;
           created_at?: string;
         };
+        Relationships: [];
       };
       warranty_notifications: {
         Row: {
@@ -247,6 +254,7 @@ export interface Database {
           warranty_end?: string;
           notified_at?: string;
         };
+        Relationships: [];
       };
       ai_usage: {
         Row: {
@@ -279,6 +287,7 @@ export interface Database {
           output_tokens?: number;
           ts?: string;
         };
+        Relationships: [];
       };
     };
     Views: Record<string, never>;

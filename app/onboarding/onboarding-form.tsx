@@ -22,7 +22,7 @@ export function OnboardingForm() {
 
     if (rpcError) {
       setSubmitting(false);
-      setError("We couldn't create your household. Give it a name between 1 and 80 characters and try again.");
+      setError("We couldn&apos;t create your household. Give it a name between 1 and 80 characters and try again.");
       return;
     }
 
@@ -50,7 +50,7 @@ export function OnboardingForm() {
           value={name}
           onChange={(event) => setName(event.target.value)}
         />
-        <p className="hint">We'll set up Kitchen, Living Room, Laundry and Garage rooms to start you off.</p>
+        <p className="hint">We&apos;ll set up Kitchen, Living Room, Laundry and Garage rooms to start you off.</p>
       </div>
 
       <div className="form-actions">
