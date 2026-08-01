@@ -47,7 +47,16 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const admin = createAdminClient();
+  // createAdminClient throws synchronously when the Supabase env vars are
+  // missing; return the same JSON error shape as the query failures below
+  // rather than letting an unhandled exception become an HTML 500.
+  let admin: ReturnType<typeof createAdminClient>;
+  try {
+    admin = createAdminClient();
+  } catch (err) {
+    console.error("warranty-check: admin client unavailable", err instanceof Error ? err.name : typeof err);
+    return NextResponse.json({ error: "configuration_error" }, { status: 500 });
+  }
 
   const [{ data: members, error: membersError }, { data: devices, error: devicesError }] =
     await Promise.all([
