@@ -79,7 +79,7 @@ Both are correct; do not "fix" either one to match the other.
 
 ## Messaging
 
-- **Tagline:** Home support that remembers for you. ♥
+- **Tagline:** Home support that remembers for you.
 - **Byline:** A WattKind AI product
 - **Family line:** Same heart. Different focus. Always kind. ♥
 

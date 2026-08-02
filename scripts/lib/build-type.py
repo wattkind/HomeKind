@@ -134,7 +134,7 @@ if __name__ == "__main__":
     )
     build(
         "homekind-tagline", "Inter-Variable.ttf",
-        "Home support that remembers for you. ♥", 500, 18,
+        "Home support that remembers for you.", 500, 18,
         head_fill=SLATE, tail_gradient=False, tail_fill=CORAL_TEXT,
         label="Home support that remembers for you.",
     )
