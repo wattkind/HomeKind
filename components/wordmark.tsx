@@ -4,8 +4,10 @@ import Link from "next/link";
  * HomeKind lockup for in-product chrome: the approved mark alongside the wordmark.
  *
  * The wordmark is live text rather than the logo artwork so it scales with the user's font
- * settings and stays selectable. It follows the .brand-mobile convention in
- * WattKindAI-Discovery's components/site-shell.tsx (Nunito, weight 850) and uses
+ * settings and stays selectable. This follows the family's typeset-lockup convention
+ * (mark image + live-text wordmark), which replaced the older raster lockup with its
+ * tagline baked in — see the .lockup classes in red3112/WattKind-AI assets/styles.css and
+ * the matching components in the StudyKind and Discovery repos. Nunito, weight 850, with
  * Coral (text) for the "Kind" half — see docs/BRAND.md for why that differs from the raw
  * coral gradient in the logo files.
  *

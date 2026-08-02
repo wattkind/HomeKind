@@ -77,11 +77,18 @@ raw Coral gradient, because there it is a mark. In the running product — `comp
 — "Kind" is set in Coral (text) `#B9383E`, because there it is text and has to clear WCAG AA.
 Both are correct; do not "fix" either one to match the other.
 
+**A second, deliberate difference from the WattKind and StudyKind lockups.** Their typeset
+tagline splits Ink `#111827` + display coral `#F76A6A`. HomeKind's tagline SVG uses Slate
+`#374151` + Coral (text) `#B9383E` instead. That is intentional: at lockup tagline sizes
+(10–13px) `#F76A6A` measures roughly 2.9:1 on Cream and fails WCAG AA, where `#B9383E`
+clears it. HomeKind is the accessible end of that inconsistency — align the others to
+HomeKind if the family ever converges, not the reverse.
+
 ## Messaging
 
 - **Tagline:** Home support that remembers for you.
 - **Byline:** A WattKind AI product
-- **Family line:** Same heart. Different focus. Always kind. ♥
+- **Family line:** Same heart. Different focus. Always kind.
 
 The tagline follows the family pattern (`WattKind AI`: *Helpful AI for real life*;
 `StudyKind`: *Study support that meets you where you are*) and is a promise the product
