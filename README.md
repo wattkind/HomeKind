@@ -70,7 +70,7 @@ The app runs at `http://localhost:3000`.
 | `npm run test` | Run the Vitest suite once |
 | `npm run verify` | Lint, typecheck, test and build, in that order — the full pre-push check |
 | `node scripts/generate-vapid.mjs` | Generate a VAPID key pair for Web Push (see `.env.example`) |
-| `node scripts/generate-icons.mjs` | Generate the PWA icon set from `public/assets/favicon.png` |
+| `node scripts/generate-brand.mjs` | Regenerate the logo, favicon, PWA icon and social-card set from the approved mark |
 
 ## Deployment
 
@@ -107,6 +107,19 @@ automatically unless `TENANCY_TEST_URL`, `TENANCY_TEST_ANON_KEY` and
 `TENANCY_TEST_SERVICE_ROLE_KEY` are set. Only ever point those at a disposable local
 `supabase start` stack — never at a hosted project. See the comment at the top of that file
 before running it.
+
+## Brand
+
+HomeKind's mark is a house enclosing the WattKind brain-heart — the family relationship
+StudyKind makes with a book, HomeKind makes with a home. The approved artwork, the lockups,
+the type and the usage rules are in [`docs/BRAND.md`](docs/BRAND.md); the assets themselves are
+in `public/assets/brand/`, indexed by `public/assets/brand/manifest.json`. Colour, typography
+and tone come from the canonical
+[WattKind AI brand guide](https://github.com/red3112/WattKind-AI/blob/main/BRAND-GUIDE.md) —
+this repository is not an independent brand authority.
+
+Everything raster is derived from one supplied source file by `node scripts/generate-brand.mjs`.
+Do not redraw the mark.
 
 ## Fonts
 

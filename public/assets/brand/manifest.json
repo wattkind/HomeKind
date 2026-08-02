@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "brand": "homekind",
+  "parent": "wattkind-ai",
+  "sourceOfTruth": "public/assets/brand",
+  "guide": "../../../docs/BRAND.md",
+  "familyGuide": "https://github.com/red3112/WattKind-AI/blob/main/BRAND-GUIDE.md",
+  "tagline": "Home support that remembers for you. ♥",
+  "byline": "A WattKind AI product",
+  "source": "source/homekind-mark-original.png",
+  "logos": {
+    "mark": "logos/homekind-mark.png",
+    "markCream": "logos/homekind-mark-cream.png",
+    "markUi": "logos/homekind-mark-ui.png",
+    "lockup": "logos/homekind-logo.png",
+    "lockupCompact": "logos/homekind-logo-compact.png",
+    "lockupStacked": "logos/homekind-logo-stacked.png"
+  },
+  "type": {
+    "wordmark": "logos/homekind-wordmark.svg",
+    "tagline": "logos/homekind-tagline.svg",
+    "byline": "logos/homekind-byline.svg"
+  },
+  "iconography": {
+    "favicon": "iconography/homekind-favicon.png"
+  },
+  "social": {
+    "openGraph": "social-card.png"
+  },
+  "appIcons": {
+    "appleTouch": "../../icons/apple-touch-icon.png",
+    "icon192": "../../icons/icon-192.png",
+    "icon512": "../../icons/icon-512.png",
+    "maskable512": "../../icons/icon-maskable-512.png",
+    "favicon": "../favicon.png"
+  },
+  "collateral": {
+    "emailSignature": "email-signatures/homekind-support-email-signature.html"
+  },
+  "fonts": {
+    "headings": "../fonts/Nunito-Variable.ttf",
+    "body": "../fonts/Inter-Variable.ttf"
+  },
+  "generators": {
+    "assets": "scripts/generate-brand.mjs",
+    "type": "scripts/lib/build-type.py"
+  }
+}

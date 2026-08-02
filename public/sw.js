@@ -16,6 +16,8 @@ const PRECACHE_URLS = [
   "/manifest.webmanifest",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
+  // Header mark — the app shell has to render branded while offline.
+  "/assets/brand/logos/homekind-mark-ui.png",
   "/assets/fonts/Inter-Variable.ttf",
   "/assets/fonts/Inter-OFL.txt",
   "/assets/fonts/Nunito-Variable.ttf",

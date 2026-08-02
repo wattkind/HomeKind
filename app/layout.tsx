@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   icons: {
     icon: "/assets/favicon.png",
-    apple: "/assets/favicon.png",
+    apple: "/icons/apple-touch-icon.png",
   },
   openGraph: {
     type: "website",
@@ -19,6 +19,21 @@ export const metadata: Metadata = {
     description:
       "Keep every device's manuals, receipts and warranty details in one place, so you can find them when you need them.",
     url: "https://homekind.wattkind.ai",
+    images: [
+      {
+        url: "/assets/brand/social-card.png",
+        width: 1200,
+        height: 630,
+        alt: "HomeKind — Home support that remembers for you.",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "HomeKind — A WattKind AI product",
+    description:
+      "Keep every device's manuals, receipts and warranty details in one place, so you can find them when you need them.",
+    images: ["/assets/brand/social-card.png"],
   },
   robots: { index: true, follow: true },
 };
