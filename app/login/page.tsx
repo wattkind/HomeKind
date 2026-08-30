@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Suspense, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -74,7 +75,14 @@ function LoginForm() {
 
   return (
     <div className="column" style={{ paddingBlock: "48px" }}>
-      <p className="eyebrow">HomeKind</p>
+      <Image
+        src="/assets/brand/homekind-logo.png"
+        alt="HomeKind — Home support that remembers for you."
+        width={222}
+        height={79}
+        priority
+        style={{ marginBottom: "8px" }}
+      />
       <h1>{mode === "sign-in" ? "Welcome back" : "Create your account"}</h1>
       <p>
         {mode === "sign-in"
