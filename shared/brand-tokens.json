@@ -5,6 +5,7 @@
     "core": {
       "coral": { "hex": "#FF6B6B", "role": "Care, emphasis, active states. Fills, gradients and marks ONLY — fails AA as text." },
       "coralText": { "hex": "#B9383E", "role": "AA-safe coral for text, links and icon strokes on light surfaces (~5.7:1 on white)." },
+      "coralDisplay": { "hex": "#F76A6A", "role": "Large display accents only — lockup tagline second phrases and oversized display lines. Not for body text or links (fails AA at small sizes)." },
       "tangerine": { "hex": "#FF8C3A", "role": "Energy, CTAs, warm gradient endpoint." },
       "sunshine": { "hex": "#FFC66A", "role": "Encouragement, highlights, warm gradient accents. Fill only, not text." }
     },
@@ -29,7 +30,7 @@
     },
     "semantic": {
       "success": { "accent": "#23795B", "surface": "#E9F7F3", "role": "Progress complete, confirmations." },
-      "warning": { "accent": "#B45309", "surface": "#FFE9D6", "role": "Attention. Sunshine is a fill, not text." },
+      "warning": { "accent": "#92400E", "surface": "#FFE9D6", "role": "Attention. Sunshine is a fill, not text." },
       "error": { "accent": "#B9383E", "surface": "#FDE7E7", "role": "Validation and blocking errors. Reserve for genuine problems." },
       "info": { "accent": "#4B4F8F", "surface": "#EDE9FF", "role": "Tips, calm/focus states." }
     }
@@ -38,7 +39,8 @@
     "primary": "linear-gradient(135deg, #FF6B6B 0%, #FF8C3A 100%)",
     "warm": "linear-gradient(135deg, #FF8C3A 0%, #FFC66A 100%)",
     "accent": "linear-gradient(135deg, #FF6B6B 0%, #FFC66A 100%)",
-    "soft": "linear-gradient(135deg, #FFC66A 0%, #FFF6EB 100%)"
+    "soft": "linear-gradient(135deg, #FFC66A 0%, #FFF6EB 100%)",
+    "note": "White text on the primary Coral\u2192Tangerine gradient is an accepted WCAG 2.2 AA exception (2.78:1 to 2.32:1 across the ramp) \u2014 see \u201cWhite on the warm gradient \u2014 accepted exception (22 Aug 2026)\u201d in ../../BRAND-GUIDE.md."
   },
   "typography": {
     "fontHeading": "\"Nunito\", ui-rounded, \"Arial Rounded MT Bold\", system-ui, sans-serif",
