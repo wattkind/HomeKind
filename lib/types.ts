@@ -1,6 +1,6 @@
 // Hand-written Supabase Database type, derived directly from
-// supabase/migrations/20260801000000_initial_schema.sql. Keep in sync with
-// the migration — columns here must match the SQL exactly.
+// supabase/migrations/. Keep in sync with the migrations —
+// columns here must match the SQL exactly.
 
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
@@ -13,18 +13,29 @@ export interface Database {
           name: string;
           owner_id: string;
           created_at: string;
+          ai_enabled: boolean;
+          manual_autofetch_enabled: boolean;
+          // numeric(10,2): PostgREST returns numeric as a string, and null
+          // means "no household cap, fall back to GLOBAL_BUDGET_CAP_USD".
+          ai_monthly_budget_usd: string | null;
         };
         Insert: {
           id?: string;
           name: string;
           owner_id: string;
           created_at?: string;
+          ai_enabled?: boolean;
+          manual_autofetch_enabled?: boolean;
+          ai_monthly_budget_usd?: number | string | null;
         };
         Update: {
           id?: string;
           name?: string;
           owner_id?: string;
           created_at?: string;
+          ai_enabled?: boolean;
+          manual_autofetch_enabled?: boolean;
+          ai_monthly_budget_usd?: number | string | null;
         };
         Relationships: [];
       };

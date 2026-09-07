@@ -56,37 +56,60 @@ function rowCostUsd(model: string, inputTokens: number, outputTokens: number): n
 }
 
 /**
- * True once this calendar month's (UTC) total AI spend across every
- * household reaches GLOBAL_BUDGET_CAP_USD. Returns false (not blocked) when
- * the cap is unset/empty — that's "no cap configured", not "cap is zero".
+ * Start of the current calendar month in UTC, as an ISO string. Shared by
+ * the cap check and the spend readout so the two can never disagree about
+ * which rows count as "this month".
  */
-export async function budgetExhausted(): Promise<boolean> {
-  const rawCap = process.env.GLOBAL_BUDGET_CAP_USD;
-  if (rawCap === undefined || rawCap.trim() === "") return false;
-
-  const capUsd = Number(rawCap);
-  if (!Number.isFinite(capUsd) || capUsd < 0) return false;
-
+function startOfMonthUtc(): string {
   const now = new Date();
-  const startOfMonthUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString();
+}
 
+/**
+ * This calendar month's (UTC) AI spend in USD. Pass a householdId to scope it
+ * to one household, or omit it for the deployment-wide total that the cap
+ * check uses.
+ *
+ * Returns null on a read error so the caller can tell "no spend" from "we
+ * don't know" — the settings page shows that difference rather than a
+ * confident $0.00 it hasn't actually verified.
+ */
+export async function monthlySpendUsd(householdId?: string): Promise<number | null> {
   const admin = createAdminClient();
-  const { data, error } = await admin
-    .from("ai_usage")
-    .select("model, input_tokens, output_tokens")
-    .gte("ts", startOfMonthUtc);
-
-  if (error) {
-    console.error("budgetExhausted: query failed", error.code, error.message);
-    // Fail closed on a read error too: treat as exhausted so a transient DB
-    // problem can't silently blow through the cap.
-    return true;
+  let query = admin.from("ai_usage").select("model, input_tokens, output_tokens").gte("ts", startOfMonthUtc());
+  if (householdId) {
+    query = query.eq("household_id", householdId);
   }
 
-  const spendUsd = (data ?? []).reduce(
-    (sum, row) => sum + rowCostUsd(row.model, row.input_tokens, row.output_tokens),
-    0,
-  );
+  const { data, error } = await query;
+  if (error) {
+    console.error("monthlySpendUsd: query failed", error.code, error.message);
+    return null;
+  }
+
+  return (data ?? []).reduce((sum, row) => sum + rowCostUsd(row.model, row.input_tokens, row.output_tokens), 0);
+}
+
+/**
+ * True once this calendar month's (UTC) total AI spend reaches `capUsd`.
+ * Returns false (not blocked) when the cap is null — that's "no cap
+ * configured", not "cap is zero".
+ *
+ * The cap is now passed in by the caller (resolved from the household row,
+ * falling back to GLOBAL_BUDGET_CAP_USD, in lib/ai/settings.ts) instead of
+ * being read from the environment here, so a household can set its own.
+ * The spend side stays deployment-wide on purpose: this keeps the cap a true
+ * ceiling on the API key's total spend rather than a per-tenant allowance
+ * that several households could each exhaust independently.
+ */
+export async function budgetExhausted(capUsd: number | null): Promise<boolean> {
+  if (capUsd === null || !Number.isFinite(capUsd) || capUsd < 0) return false;
+
+  const spendUsd = await monthlySpendUsd();
+
+  // Fail closed on a read error: treat as exhausted so a transient DB
+  // problem can't silently blow through the cap.
+  if (spendUsd === null) return true;
 
   return spendUsd >= capUsd;
 }

@@ -69,6 +69,15 @@ environment variables below. Set `VAPID_CONTACT=mailto:support@wattkind.ai` alon
    `TENANCY_TEST_URL` / `TENANCY_TEST_ANON_KEY` / `TENANCY_TEST_SERVICE_ROLE_KEY` are local-only
    test variables (see `tests/tenancy/tenancy.test.ts`) and must never be set in Vercel.
 
+   **`AI_ENABLED`, `NEXT_PUBLIC_AUTOFETCH_ENABLED` and `GLOBAL_BUDGET_CAP_USD` are deployment
+   ceilings, not the only controls.** Each household also has its own switches under
+   *Settings → AI assistant* (`households.ai_enabled`, `households.manual_autofetch_enabled`,
+   `households.ai_monthly_budget_usd`). The two layers are ANDed in `lib/ai/settings.ts`, so a
+   deployment can always force a feature off and no stored row can turn it back on — which is
+   what keeps a preview/dev deployment from spending on the production key. A household budget
+   (including `0`) overrides `GLOBAL_BUDGET_CAP_USD`; leaving the household value null falls back
+   to it.
+
 5. **Cron**: the warranty-check job is already defined in `vercel.json`
    (`"crons": [{ "path": "/api/cron/warranty-check", "schedule": "0 21 * * *" }]`) — nothing to
    configure in the dashboard beyond setting `CRON_SECRET`. When that environment variable is
