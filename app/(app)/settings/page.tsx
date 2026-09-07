@@ -33,6 +33,10 @@ export default async function SettingsPage() {
           <h3>Notifications</h3>
           <p>Choose when you&apos;re reminded about warranties running out.</p>
         </Link>
+        <Link href="/settings/ai" className="card">
+          <h3>AI assistant</h3>
+          <p>Turn device chat and automatic manual look-ups on or off, and set a monthly budget.</p>
+        </Link>
       </nav>
 
       <form action="/auth/signout" method="post">

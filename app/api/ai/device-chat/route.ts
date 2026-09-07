@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
-import { aiEnabled, streamDeviceChat, CHAT_MODEL, type DeviceChatMessage } from "@/lib/ai/anthropic";
+import { streamDeviceChat, CHAT_MODEL, type DeviceChatMessage } from "@/lib/ai/anthropic";
+import { getAiSettings } from "@/lib/ai/settings";
 import { budgetExhausted, recordUsage } from "@/lib/ai/usage";
 import { toFailureCode, type AiFailureCode } from "@/lib/ai/errors";
 
@@ -75,15 +76,12 @@ export async function POST(request: Request): Promise<Response> {
   // SSE stream are sent, so the client can tell success from failure by
   // content-type alone (JSON vs text/event-stream), never by status code —
   // AI failures are never a 500.
-  if (!aiEnabled()) {
-    return jsonFailure("ai_disabled");
-  }
-  if (await budgetExhausted()) {
-    return jsonFailure("budget_exhausted");
-  }
 
-  // Device lookup is RLS-scoped via the user-scoped client, so this also
-  // naturally excludes devices in a household the caller isn't a member of.
+  // The device lookup now comes FIRST because the AI gates are per-household
+  // and need device.household_id to resolve. It is RLS-scoped via the
+  // user-scoped client, so it also naturally excludes devices in a household
+  // the caller isn't a member of — an unauthorised id is indistinguishable
+  // from a missing one, exactly as before.
   const { data: device } = await supabase
     .from("devices")
     .select("id, household_id")
@@ -93,6 +91,14 @@ export async function POST(request: Request): Promise<Response> {
 
   if (!device) {
     return jsonFailure("manual_missing");
+  }
+
+  const aiSettings = await getAiSettings(device.household_id);
+  if (!aiSettings.aiEnabled) {
+    return jsonFailure("ai_disabled");
+  }
+  if (await budgetExhausted(aiSettings.budgetCapUsd)) {
+    return jsonFailure("budget_exhausted");
   }
 
   const { data: manual } = await supabase

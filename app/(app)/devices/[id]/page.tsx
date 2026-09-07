@@ -4,7 +4,9 @@ import { createClient, requireHousehold } from "@/lib/supabase/server";
 import { daysUntil } from "@/lib/warranty";
 import { DocumentList } from "@/components/document-list";
 import { UploadDocument } from "@/components/upload-document";
+import { DeviceManualFetch } from "@/components/device-manual-fetch";
 import { RestoreDeviceCard, DeleteDeviceButton } from "@/components/device-actions";
+import { getAiSettings } from "@/lib/ai/settings";
 
 export const dynamic = "force-dynamic";
 
@@ -55,6 +57,14 @@ export default async function DeviceDetailPage({ params }: { params: Promise<{ i
   const hasManual = (documents ?? []).some((doc) => doc.type === "manual");
   const brandModel = [device.brand, device.model_number].filter(Boolean).join(" · ");
 
+  // Offer the automatic lookup only when it could actually work: no manual on
+  // file yet, something to search on, and the household has it switched on.
+  const trimmedBrand = device.brand?.trim() ?? "";
+  const trimmedModel = device.model_number?.trim() ?? "";
+  const aiSettings = await getAiSettings(householdId);
+  const canAutoFetchManual =
+    !hasManual && trimmedBrand.length > 0 && trimmedModel.length > 0 && aiSettings.autoFetchEnabled;
+
   return (
     <div style={{ display: "grid", gap: "24px", paddingBlock: "24px" }}>
       <div>
@@ -93,6 +103,15 @@ export default async function DeviceDetailPage({ params }: { params: Promise<{ i
         <h2 style={{ marginBottom: "14px" }}>Documents</h2>
         <DocumentList documents={documents ?? []} />
       </div>
+
+      {canAutoFetchManual ? (
+        <DeviceManualFetch
+          deviceId={device.id}
+          householdId={householdId}
+          brand={trimmedBrand}
+          model={trimmedModel}
+        />
+      ) : null}
 
       <UploadDocument deviceId={device.id} householdId={householdId} />
 

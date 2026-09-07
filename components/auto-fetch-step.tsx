@@ -120,7 +120,12 @@ export function AutoFetchStep({
     <div className="field">
       <label htmlFor="manual-upload">Manual (PDF)</label>
 
-      {searching ? <p className="hint">Looking for the official manual…</p> : null}
+      {/* A web search legitimately takes a couple of minutes, so the wait is
+          named rather than left as a bare spinner — and the upload control
+          below stays usable throughout, so nobody has to wait for it. */}
+      {searching ? (
+        <p className="hint">Looking for the official manual… this can take a minute or two.</p>
+      ) : null}
 
       {fetchedName ? <p className="hint">Fetched {fetchedName} — it will be attached when you save.</p> : null}
 

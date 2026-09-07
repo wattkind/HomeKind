@@ -13,6 +13,47 @@ import { AiCodedError, toFailureCode, type AiFailureCode } from "@/lib/ai/errors
 
 export const CHAT_MODEL = "claude-sonnet-5";
 
+// Budget for the manual-search turn. Both of these were originally set far
+// too low and made findManualCandidate fail 100% of the time while still
+// billing for the search:
+//
+//  - max_tokens was 1024. A server-side web_search turn spends its output
+//    budget on tool-use round-trips before it ever writes the final answer,
+//    so the reply was truncated (stop_reason "max_tokens") with an EMPTY
+//    text block. That parsed as null -> api_error -> silent fallback.
+//  - max_uses was 3. With room to finish, the model then reported it had run
+//    out of searches before it could verify a PDF url, and correctly
+//    returned {"found": false} -- a real answer, but never a useful one.
+//
+// These values are what a lookup actually needs: enough searches to find and
+// confirm a manufacturer-hosted PDF, and enough output tokens to still emit
+// the JSON afterwards.
+const MANUAL_SEARCH_MAX_TOKENS = 4096;
+const MANUAL_SEARCH_MAX_USES = 5;
+
+// Hard wall-clock bound on the lookup. The SDK applies no timeout of its own,
+// so without this a slow search leaves the caller's fetch hanging on a
+// spinner with no way out. A timeout arrives as APIConnectionTimeoutError,
+// which toFailureCode() already maps to api_error — the normal silent
+// fallback to the upload control.
+//
+// Sized from measured runs of this exact prompt (Ninja / XXL Dual Zone):
+//
+//   max_uses  input tokens   ~cost    wall clock
+//   3         152,664        $0.46    > 2 min
+//   5         174,564        $0.52    1m51s
+//   8         413,897        $1.24    ~18 min
+//
+// Server-side web search is slow and its cost grows steeply with max_uses, so
+// 5 is the balance point: enough searches to check a manufacturer domain and
+// verify a PDF, without the runaway of 8. 4 minutes then leaves real headroom
+// over the observed 1m51s without letting a pathological lookup run forever.
+//
+// NOTE: this is why the route's maxDuration is 300 and not the Next default —
+// a lookup legitimately takes minutes. See the deployment caveat in
+// app/api/manuals/fetch/route.ts.
+const MANUAL_SEARCH_TIMEOUT_MS = 240_000;
+
 let client: Anthropic | null = null;
 
 /** Lazy singleton. Throws AiCodedError("no_api_key") if ANTHROPIC_API_KEY is
@@ -133,16 +174,16 @@ export async function findManualCandidate(opts: {
   try {
     response = await anthropic.messages.create({
       model: CHAT_MODEL,
-      max_tokens: 1024,
+      max_tokens: MANUAL_SEARCH_MAX_TOKENS,
       messages: [{ role: "user", content: prompt }],
       tools: [
         {
           type: "web_search_20260318",
           name: "web_search",
-          max_uses: 3,
+          max_uses: MANUAL_SEARCH_MAX_USES,
         },
       ],
-    });
+    }, { timeout: MANUAL_SEARCH_TIMEOUT_MS });
   } catch (err) {
     return { ok: false, error: toFailureCode(err) };
   }
@@ -157,6 +198,20 @@ export async function findManualCandidate(opts: {
 
   if (response.stop_reason === "refusal") {
     return { ok: false, error: "refusal", usage };
+  }
+
+  // Truncation is indistinguishable from "found nothing" once it reaches the
+  // JSON parse below (both end as api_error), and it is the one failure that
+  // means the request was mis-configured rather than the manual not existing.
+  // It is logged loudly so a future budget regression shows up in the service
+  // log instead of looking like a run of unlucky lookups.
+  if (response.stop_reason === "max_tokens") {
+    console.error(
+      `findManualCandidate: response truncated at max_tokens=${MANUAL_SEARCH_MAX_TOKENS} ` +
+        `(in ${usage.inputTokens} / out ${usage.outputTokens}) -- the search turn had no room ` +
+        `left to emit its JSON answer; raise MANUAL_SEARCH_MAX_TOKENS.`,
+    );
+    return { ok: false, error: "api_error", usage };
   }
 
   const text = response.content

@@ -1,13 +1,26 @@
 import net from "node:net";
 import { createClient } from "@/lib/supabase/server";
-import { aiEnabled, findManualCandidate, CHAT_MODEL } from "@/lib/ai/anthropic";
+import { findManualCandidate, CHAT_MODEL } from "@/lib/ai/anthropic";
+import { getAiSettings } from "@/lib/ai/settings";
 import { budgetExhausted, recordUsage } from "@/lib/ai/usage";
 
 // Node runtime (not edge) — this route makes an outbound fetch to an
 // arbitrary manufacturer host and streams a PDF back, which needs Node's
 // networking/streaming primitives.
 export const runtime = "nodejs";
-export const maxDuration = 60;
+
+// 300s, not the previous 60s. The search step calls the model with the
+// server-side web_search tool, and a measured lookup of a real appliance took
+// 1m51s at max_uses=5 (see MANUAL_SEARCH_TIMEOUT_MS in lib/ai/anthropic.ts) —
+// so the old 60s ceiling was below the feature's normal running time and would
+// have cut off a lookup that was working.
+//
+// DEPLOYMENT CAVEAT: 300s needs a platform that allows it. Vercel's Hobby plan
+// caps a Node function at 60s, so auto-fetch cannot complete there; it needs a
+// plan/runtime with a longer limit. Self-hosted `next start` (the BarnyardServer
+// deployment) has no such ceiling. The confirm step is a plain PDF download and
+// is comfortably inside any limit — only the search step is affected.
+export const maxDuration = 300;
 
 const MAX_FIELD_LEN = 120;
 const MAX_URL_LEN = 2048;
@@ -36,9 +49,11 @@ function isValidField(v: unknown): v is string {
   return typeof v === "string" && v.trim().length > 0 && v.length <= MAX_FIELD_LEN;
 }
 
-function autoFetchDisabled(): boolean {
-  return process.env.NEXT_PUBLIC_AUTOFETCH_ENABLED === "false";
-}
+// NOTE: the auto-fetch gate used to live here as a bare
+// `process.env.NEXT_PUBLIC_AUTOFETCH_ENABLED === "false"` check. It is now
+// resolved per-household by lib/ai/settings.ts (deployment env ANDed with the
+// household's own toggle), because the switch is a product setting rather
+// than a deployment-only one. The env var still acts as a hard ceiling there.
 
 /** True if `hostname` is a raw IP literal (v4 or v6), e.g. "127.0.0.1" or
  * "[::1]" — used to block requests aimed directly at an IP rather than a
@@ -243,9 +258,9 @@ async function handleSearch(rawBody: unknown, ctx: AuthedContext): Promise<Respo
   const { brand, model } = rawBody as Record<string, unknown>;
   if (!isValidField(brand) || !isValidField(model)) return invalidRequest();
 
-  if (autoFetchDisabled()) return fallback();
-  if (!aiEnabled()) return fallback();
-  if (await budgetExhausted()) return fallback();
+  const aiSettings = await getAiSettings(ctx.householdId);
+  if (!aiSettings.autoFetchEnabled) return fallback();
+  if (await budgetExhausted(aiSettings.budgetCapUsd)) return fallback();
 
   const candidate = await findManualCandidate({ brand, model });
 
@@ -292,12 +307,16 @@ async function handleSearch(rawBody: unknown, ctx: AuthedContext): Promise<Respo
   );
 }
 
-async function handleConfirm(rawBody: unknown): Promise<Response> {
+async function handleConfirm(rawBody: unknown, ctx: AuthedContext): Promise<Response> {
   if (typeof rawBody !== "object" || rawBody === null) return invalidRequest();
   const { url, title } = rawBody as Record<string, unknown>;
   if (typeof url !== "string" || url.length === 0 || url.length > MAX_URL_LEN) return invalidRequest();
 
-  if (autoFetchDisabled()) return fallback();
+  // Re-checked on confirm, not just on search: the toggle could have been
+  // turned off between the two calls, and confirm is the step that actually
+  // pulls bytes from an arbitrary host.
+  const aiSettings = await getAiSettings(ctx.householdId);
+  if (!aiSettings.autoFetchEnabled) return fallback();
 
   // Full re-validation of the SAME pipeline as the metadata step — this url
   // is just an echo of what the client was shown, never trusted as-is.
@@ -348,9 +367,11 @@ export async function POST(request: Request): Promise<Response> {
 
   if (!membership) return unauthenticated();
 
+  const ctx: AuthedContext = { householdId: membership.household_id, userId: user.id };
+
   if (confirm) {
-    return handleConfirm(rawBody);
+    return handleConfirm(rawBody, ctx);
   }
 
-  return handleSearch(rawBody, { householdId: membership.household_id, userId: user.id });
+  return handleSearch(rawBody, ctx);
 }
