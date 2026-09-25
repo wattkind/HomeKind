@@ -1,0 +1,73 @@
+/*
+ * WattKind AI brand tokens for HomeKind.
+ *
+ * Values mirror red3112/WattKind-AI `assets/brand/tokens.json`, the canonical
+ * token source. Re-derive from that file when the brand changes; do not edit
+ * these values independently.
+ *
+ * Coral, Tangerine and Sunshine are fills and gradients only. Text on light
+ * surfaces uses Ink, Slate, Charcoal, Stone or Coral (text) #B9383E.
+ */
+:root {
+  /* core */
+  --hk-coral: #ff6b6b;
+  --hk-coral-text: #b9383e;
+  --hk-tangerine: #ff8c3a;
+  --hk-sunshine: #ffc66a;
+
+  /* neutral */
+  --hk-ink: #111827;
+  --hk-slate: #374151;
+  --hk-charcoal: #4b5563;
+  --hk-stone: #6b7280;
+  --hk-pebble: #9ca3af;
+  --hk-mist-gray: #d1d5db;
+  --hk-soft-gray: #e5e7eb;
+  --hk-cloud: #f3f4f6;
+  --hk-mist: #f4f6fa;
+  --hk-cream: #fff6eb;
+  --hk-cream-raised: #fffdf9;
+  --hk-warm-line: #f2bd95;
+
+  /* tints */
+  --hk-peach: #ffe9d6;
+  --hk-mint: #e9f7f3;
+  --hk-lavender: #ede9ff;
+
+  /* semantic */
+  --hk-success: #23795b;
+  --hk-success-surface: #e9f7f3;
+  --hk-warning: #92400e;
+  --hk-warning-surface: #ffe9d6;
+  --hk-error: #b9383e;
+  --hk-error-surface: #fde7e7;
+  --hk-info: #4b4f8f;
+  --hk-info-surface: #ede9ff;
+
+  /* gradients (fills only) */
+  --hk-gradient-primary: linear-gradient(135deg, #ff6b6b 0%, #ff8c3a 100%);
+  --hk-gradient-warm: linear-gradient(135deg, #ff8c3a 0%, #ffc66a 100%);
+  --hk-gradient-soft: linear-gradient(135deg, #ffc66a 0%, #fff6eb 100%);
+
+  /* typography */
+  --hk-font-heading: 'Nunito', ui-rounded, 'Arial Rounded MT Bold', system-ui, sans-serif;
+  --hk-font-body:
+    'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* shape and elevation */
+  --hk-radius-control: 0.75rem;
+  --hk-radius-button: 1rem;
+  --hk-radius-card: 1.25rem;
+  --hk-radius-pill: 999px;
+  --hk-shadow-card: 0 8px 24px rgba(17, 24, 39, 0.06);
+  --hk-focus-ring: 0 0 0 3px rgba(255, 107, 107, 0.28);
+  --hk-focus-outline: 4px solid #ff6b6b;
+
+  /* layout */
+  --hk-touch-target: 44px;
+  --hk-gutter: 16px;
+  --hk-safe-top: env(safe-area-inset-top, 0px);
+  --hk-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --hk-safe-left: env(safe-area-inset-left, 0px);
+  --hk-safe-right: env(safe-area-inset-right, 0px);
+}
