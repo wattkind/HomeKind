@@ -1,0 +1,6 @@
+dist
+ios
+node_modules
+resources
+public
+package-lock.json

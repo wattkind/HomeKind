@@ -1,0 +1,92 @@
+# Codemagic build configuration for HomeKind.
+#
+# There is no Mac in this project's toolchain, so every iOS build, archive and
+# TestFlight upload happens here. See docs/release.md for the one-time setup
+# this workflow depends on (the App Store Connect integration and the
+# App Store Connect app record).
+#
+# One workflow only: build, test, archive and upload to TestFlight.
+workflows:
+  ios-testflight:
+    name: HomeKind iOS TestFlight
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    environment:
+      # "latest" is deliberate: HomeKind ships no server, so there is no
+      # compatibility matrix to pin against, and Capacitor 8 / iOS need a
+      # current Xcode.
+      xcode: latest
+      node: lts
+      vars:
+        XCODE_WORKSPACE: 'ios/App/App.xcworkspace'
+        XCODE_SCHEME: 'App'
+        BUNDLE_ID: 'ai.wattkind.homekind'
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: ai.wattkind.homekind
+    # No shared environment variable groups: HomeKind has no secrets beyond
+    # the App Store Connect integration below.
+    integrations:
+      # Name of the App Store Connect integration configured once in the
+      # Codemagic UI under Team settings > Integrations. Must be named
+      # exactly "HomeKind" there; see docs/release.md.
+      app_store_connect: HomeKind
+    triggering:
+      # Manual by default (Start new build in the Codemagic UI), plus any
+      # pushed tag matching v* (e.g. v1.0.0) starts a build automatically.
+      events:
+        - tag
+      tag_patterns:
+        - pattern: 'v*'
+          include: true
+      cancel_previous_builds: true
+    cache:
+      cache_paths:
+        - $HOME/.npm
+
+    scripts:
+      - name: npm ci
+        script: npm ci
+
+      - name: npm run lint
+        script: npm run lint
+
+      - name: npm run typecheck
+        script: npm run typecheck
+
+      - name: npm test
+        script: npm test
+
+      - name: npm run build
+        script: npm run build
+
+      - name: npx cap sync ios
+        script: npx cap sync ios
+
+      - name: xcode-project use-profiles
+        script: xcode-project use-profiles
+
+      - name: Set build number from Codemagic build number
+        # Every TestFlight upload needs a unique CFBundleVersion. Codemagic
+        # exposes a monotonically increasing build number as $BUILD_NUMBER;
+        # agvtool writes it into the Xcode project as CURRENT_PROJECT_VERSION.
+        script: |
+          cd ios/App
+          agvtool new-version -all "$BUILD_NUMBER"
+
+      - name: xcode-project build-ipa
+        script: |
+          xcode-project build-ipa \
+            --workspace "$CM_BUILD_DIR/$XCODE_WORKSPACE" \
+            --scheme "$XCODE_SCHEME"
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM
+
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        submit_to_app_store: false
