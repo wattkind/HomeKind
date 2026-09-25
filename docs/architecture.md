@@ -15,7 +15,8 @@ src/
   storage/              AttachmentStorage adapters: native filesystem, web IndexedDB, memory
   platform/             thin wrappers over Capacitor plugins with browser fallbacks
   screens/              one file per screen
-  components/           shared UI pieces
+  components/           shared UI pieces; PdfPages.tsx renders PDFs with pdf.js (legacy build,
+                        lazy-loaded, worker bundled locally) because WKWebView cannot scroll a PDF in an iframe
 tests/                  Vitest, data layer only (no UI snapshots)
 public/fonts            Nunito and Inter variable TTFs, bundled (no CDN)
 public/brand            approved HomeKind PNG artwork (never redrawn)

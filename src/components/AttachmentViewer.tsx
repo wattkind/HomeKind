@@ -7,8 +7,12 @@ import type { Attachment } from '../types';
 import { errorMessage } from './format';
 import { CloseIcon, ShareIcon } from './Icons';
 import { Modal } from './Modal';
+import { PdfPages } from './PdfPages';
 
-/** Full-screen in-app viewer for one attachment. Object URLs are revoked on close. */
+/**
+ * Full-screen in-app viewer for one attachment. Photos show as an image (the
+ * object URL is revoked on close); PDFs render page by page with pdf.js.
+ */
 export function AttachmentViewer({
   attachment,
   onClose,
@@ -30,9 +34,11 @@ export function AttachmentViewer({
     readAttachmentBytes(attachment)
       .then((data) => {
         if (cancelled) return;
-        objectUrl = URL.createObjectURL(bytesToBlob(data, attachment.mimeType));
+        if (attachment.kind === 'photo') {
+          objectUrl = URL.createObjectURL(bytesToBlob(data, attachment.mimeType));
+          setUrl(objectUrl);
+        }
         setBytes(data);
-        setUrl(objectUrl);
       })
       .catch((err: unknown) => {
         if (!cancelled) setError(`This file could not be opened. ${errorMessage(err)}`);
@@ -80,17 +86,21 @@ export function AttachmentViewer({
         <p className="alert alert--error" role="alert">
           {error}
         </p>
-      ) : !url || !attachment ? (
+      ) : !bytes || !attachment ? (
         <p className="muted" role="status">
           Opening
         </p>
       ) : attachment.kind === 'photo' ? (
-        <img className="viewer__image" src={url} alt={attachment.label} />
+        url ? (
+          <img className="viewer__image" src={url} alt={attachment.label} />
+        ) : null
       ) : (
         <>
-          <div className="viewer__pdf-wrap">
-            <iframe className="viewer__pdf" src={url} title={attachment.label} />
-          </div>
+          <PdfPages
+            bytes={bytes}
+            label={attachment.label}
+            onError={(err) => setError(`This file could not be opened. ${errorMessage(err)}`)}
+          />
           <p className="field__hint">
             If the document does not show here, use Share to open it in another app.
           </p>
