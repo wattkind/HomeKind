@@ -88,7 +88,9 @@ export function AttachmentViewer({
         <img className="viewer__image" src={url} alt={attachment.label} />
       ) : (
         <>
-          <iframe className="viewer__pdf" src={url} title={attachment.label} />
+          <div className="viewer__pdf-wrap">
+            <iframe className="viewer__pdf" src={url} title={attachment.label} />
+          </div>
           <p className="field__hint">
             If the document does not show here, use Share to open it in another app.
           </p>
