@@ -18,7 +18,7 @@ workflows:
       xcode: latest
       node: lts
       vars:
-        XCODE_WORKSPACE: 'ios/App/App.xcworkspace'
+        XCODE_PROJECT: 'ios/App/App.xcodeproj'
         XCODE_SCHEME: 'App'
         BUNDLE_ID: 'ai.wattkind.homekind'
       # Signing is done by the explicit "Fetch or create signing files" step
@@ -108,7 +108,7 @@ workflows:
       - name: xcode-project build-ipa
         script: |
           xcode-project build-ipa \
-            --workspace "$CM_BUILD_DIR/$XCODE_WORKSPACE" \
+            --project "$CM_BUILD_DIR/$XCODE_PROJECT" \
             --scheme "$XCODE_SCHEME"
 
     artifacts:
