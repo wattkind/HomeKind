@@ -9,22 +9,31 @@
   --hk-line: color-mix(in srgb, var(--hk-warm-line) 55%, transparent);
 }
 
-body {
-  overscroll-behavior: none;
+/*
+ * Scrolling model: the document never scrolls. The shell fills the viewport
+ * and <main> is the scroll container. On iOS the web view's own scrolling is
+ * disabled (capacitor.config.ts), which removes rubber-banding; inner
+ * overflow containers still scroll normally.
+ */
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
 }
 
 /* ---------- Shell ---------- */
 
 .shell {
-  min-height: 100vh;
-  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   padding-left: var(--hk-safe-left);
   padding-right: var(--hk-safe-right);
 }
 
 .topbar {
-  position: sticky;
-  top: 0;
+  flex: none;
   z-index: 10;
   padding-top: var(--hk-safe-top);
   background: var(--hk-cream);
@@ -56,9 +65,16 @@ body {
 }
 
 .content {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
   max-width: var(--hk-content-max);
   margin: 0 auto;
   padding: 1rem var(--hk-gutter) calc(var(--hk-tabbar-height) + var(--hk-safe-bottom) + 6rem);
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 .tabbar {
@@ -552,6 +568,8 @@ body {
   background: var(--hk-cream-raised);
   color: var(--hk-ink);
   box-shadow: 0 20px 48px rgba(17, 24, 39, 0.18);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
 }
 
@@ -606,12 +624,21 @@ body {
   background: var(--hk-cloud);
 }
 
-.viewer__pdf {
-  width: 100%;
+.viewer__pdf-wrap {
   height: 62dvh;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   border: 1px solid var(--hk-line);
   border-radius: var(--hk-radius-control);
   background: var(--hk-cloud);
+}
+
+.viewer__pdf {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
 }
 
 /* ---------- Welcome ---------- */
@@ -621,9 +648,11 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  justify-content: safe center;
   gap: 1.5rem;
-  min-height: 100vh;
-  min-height: 100dvh;
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   max-width: 30rem;
   margin: 0 auto;
   padding: calc(var(--hk-safe-top) + 2rem) calc(var(--hk-safe-right) + 1.5rem)
