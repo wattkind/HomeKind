@@ -4,7 +4,7 @@ import { errorMessage } from '../components/format';
 import { ShareIcon, TrashIcon } from '../components/Icons';
 import { ConfirmDialog, Modal } from '../components/Modal';
 import { Screen } from '../components/Screen';
-import { BrandMark, Wordmark } from '../components/Wordmark';
+import { BrandMark, WattKindWordmark, Wordmark } from '../components/Wordmark';
 import { applyImport, deleteAllData, exportBackup, planImport } from '../data/backup';
 import { fileToBytes, pickFile } from '../platform/files';
 import { openExternal } from '../platform/browser';
@@ -185,7 +185,7 @@ export function SettingsScreen() {
         </h2>
         <BrandMark size={64} />
         <p className="about__name">
-          <Wordmark /> <span className="about__by">by WattKind AI</span>
+          <Wordmark /> <span className="about__by">by</span> <WattKindWordmark />
         </p>
         <p className="muted">Version {APP_VERSION}</p>
         <a

@@ -4,7 +4,7 @@ HomeKind by WattKind AI is a free, local-only iOS app that keeps every household
 device's manual, receipt and warranty date on the phone, and tells the household
 which warranties are ending soon or have already expired.
 
-**Home support that remembers for you.**
+**Home support that keeps the paperwork.**
 
 There is no account, no server and no cloud. Everything a household enters lives
 in the app's local database on that phone. Backing up or moving to a new phone is
