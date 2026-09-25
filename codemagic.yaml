@@ -63,6 +63,18 @@ workflows:
       - name: npx cap sync ios
         script: npx cap sync ios
 
+      - name: Fetch or create signing files
+        # Explicit so the log shows what App Store Connect answered. Uses the
+        # credentials Codemagic exports from the App Store Connect integration
+        # (APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_KEY_IDENTIFIER,
+        # APP_STORE_CONNECT_PRIVATE_KEY). --create registers a distribution
+        # certificate and an App Store profile for the bundle id if none exist.
+        script: |
+          app-store-connect list-bundle-ids --bundle-id-identifier "$BUNDLE_ID"
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create
+
       - name: xcode-project use-profiles
         script: xcode-project use-profiles
 
