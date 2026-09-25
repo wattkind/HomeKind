@@ -22,11 +22,28 @@ Codemagic builds, signs, archives and uploads every TestFlight build from the
    Name the integration **exactly** `HomeKind` — `codemagic.yaml` references
    it by that name under `integrations.app_store_connect`. Codemagic stores
    the key; it never lives in this repository.
-3. iOS code signing: with the App Store Connect integration connected,
-   Codemagic can generate and manage the distribution certificate and
-   provisioning profile for `ai.wattkind.homekind` automatically (this is
-   what `ios_signing` and `xcode-project use-profiles` in `codemagic.yaml`
-   rely on). No certificate or profile is stored in this repository.
+3. iOS code signing: the workflow's "Fetch or create signing files" step
+   asks App Store Connect for the distribution certificate and App Store
+   provisioning profile for `ai.wattkind.homekind`, creating them if they do
+   not exist. Creating a certificate needs a private key that Codemagic
+   keeps, never the repository. Make one once:
+   - On Windows, open Git Bash (installed with Git) and run
+     `openssl genrsa 2048`. Copy the whole output, from the `-----BEGIN`
+     line to the `-----END` line inclusive.
+   - In Codemagic open the HomeKind app → **Environment variables**. Name
+     `CERTIFICATE_PRIVATE_KEY`, paste the key as the value, group
+     `ios_signing`, tick **Secure**. Add.
+   - Keep a copy of the key somewhere safe (a password manager). If it is
+     lost, revoke the certificate in the Apple Developer portal and make a
+     new key; the step will create a fresh certificate.
+     Apple allows only a few distribution certificates per team, so use the
+     same key every build rather than generating a new one each time.
+4. Apple agreements: the App Store Connect API refuses to create
+   certificates or profiles until the Account Holder has accepted the
+   current Program License Agreement (developer.apple.com → Account) and the
+   free-apps agreement is Active (App Store Connect → Business, or
+   Agreements, Tax, and Banking). An unaccepted agreement shows up in
+   Codemagic as "No matching profiles found".
 
 ## One-time App Store Connect setup
 

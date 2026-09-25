@@ -21,11 +21,15 @@ workflows:
         XCODE_WORKSPACE: 'ios/App/App.xcworkspace'
         XCODE_SCHEME: 'App'
         BUNDLE_ID: 'ai.wattkind.homekind'
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: ai.wattkind.homekind
-    # No shared environment variable groups: HomeKind has no secrets beyond
-    # the App Store Connect integration below.
+      # Signing is done by the explicit "Fetch or create signing files" step
+      # below rather than Codemagic's automatic ios_signing block, because the
+      # automatic step aborts the build before any script runs and hides the
+      # reason Apple gave. The explicit step needs one secret: the private key
+      # used for the distribution certificate, stored once in Codemagic as the
+      # secure variable CERTIFICATE_PRIVATE_KEY in the group "ios_signing".
+      # See docs/release.md for how to create it.
+      groups:
+        - ios_signing
     integrations:
       # Name of the App Store Connect integration configured once in the
       # Codemagic UI under Team settings > Integrations. Must be named
@@ -70,10 +74,25 @@ workflows:
         # APP_STORE_CONNECT_PRIVATE_KEY). --create registers a distribution
         # certificate and an App Store profile for the bundle id if none exist.
         script: |
+          set -e
+          echo "--- Bundle ids matching $BUNDLE_ID on this team"
           app-store-connect list-bundle-ids --bundle-id-identifier "$BUNDLE_ID"
+          echo "--- Existing distribution certificates"
+          app-store-connect list-certificates --type IOS_DISTRIBUTION || true
+          echo "--- Existing App Store profiles"
+          app-store-connect list-profiles --type IOS_APP_STORE || true
+          if [ -z "${CERTIFICATE_PRIVATE_KEY:-}" ]; then
+            echo "CERTIFICATE_PRIVATE_KEY is not set. Add it as a secure variable in the"
+            echo "Codemagic group 'ios_signing' (see docs/release.md), then start a new build."
+            exit 1
+          fi
+          echo "--- Fetching or creating certificate and profile"
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
+            --certificate-key=@env:CERTIFICATE_PRIVATE_KEY \
             --create
+          keychain initialize
+          keychain add-certificates
 
       - name: xcode-project use-profiles
         script: xcode-project use-profiles
