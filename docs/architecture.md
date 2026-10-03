@@ -143,6 +143,14 @@ export function openExternal(url: string): Promise<void>; // @capacitor/browser;
 export const isNative: boolean; // Capacitor.isNativePlatform()
 ```
 
+## Scrolling
+
+The document never scrolls. `html`, `body` and `#root` are fixed at viewport
+height; the shell is a column flexbox and `<main>` is the scroll container.
+On iOS `scrollEnabled: false` in `capacitor.config.ts` turns off the web view's
+own scroll view (no rubber-banding); inner overflow containers still scroll.
+See `docs/decisions.md`.
+
 ## Rules
 
 - No network calls. No CDN fonts, analytics, crash reporting, update checks or remote config.

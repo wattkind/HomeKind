@@ -117,3 +117,52 @@ work that does not need to block v1's release.
 
 **Rules out:** any `prefers-color-scheme: dark` styling in v1; the app
 follows its single light theme regardless of system appearance.
+
+## The page never scrolls; `<main>` does
+
+**Decision:** `capacitor.config.ts` sets `scrollEnabled: false`, so the
+WKWebView's own scroll view is off, and the app shell fills the viewport
+with `<main>` as the scroll container (`overflow-y: auto`).
+
+**Why:** turning off the web view's scrolling is what removes iOS
+rubber-banding and makes the app feel native rather than like a web page.
+But with that off, anything that relied on document scrolling freezes
+entirely, which is exactly what the first TestFlight build did. Inner overflow
+containers still scroll normally, so moving the scrolling inside the page
+gives both.
+
+**Rules out:** any screen that depends on `window` or `document` scrolling;
+dialogs and the welcome screen scroll themselves the same way.
+
+## pdf.js for viewing PDFs
+
+**Decision:** PDF attachments are rendered page by page to `<canvas>` with
+pdf.js (`pdfjs-dist`, legacy build), lazy-loaded, with the worker bundled
+from the app itself.
+
+**Why:** WKWebView will render a PDF inside an `<iframe>` but will not scroll
+it, even inside a scrollable wrapper, so only the first page was reachable on
+a real iPhone. pdf.js draws every page as an ordinary element the page can
+scroll. The legacy build is used because the modern build calls
+`Map.prototype.getOrInsertComputed`, which current iOS WebKit lacks.
+
+**Rules out:** the iframe viewer; any PDF rendering that fetches fonts or
+decoders from a CDN (nothing is fetched; unembedded fonts fall back to system
+fonts). Known limit: pdf.js 5 likely needs iOS 16.4 or later; the rest of
+the app is unaffected on older phones.
+
+## Explicit signing step and `.xcodeproj` in Codemagic
+
+**Decision:** `codemagic.yaml` fetches or creates the distribution
+certificate and App Store profile in a named script step using
+`app-store-connect fetch-signing-files` and a private key stored once in
+Codemagic as `CERTIFICATE_PRIVATE_KEY`, instead of Codemagic's automatic
+`ios_signing` block. `build-ipa` targets `ios/App/App.xcodeproj`, not a
+workspace.
+
+**Why:** the automatic signing pre-step aborts the build before any script
+runs and reports only "No matching profiles found", hiding Apple's real
+answer. The explicit step prints it. Capacitor 8 resolves plugins with Swift
+Package Manager, so there is no CocoaPods workspace to build.
+
+**Rules out:** `ios_signing` in `environment`; any `.xcworkspace` path.

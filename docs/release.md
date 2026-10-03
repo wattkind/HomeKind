@@ -60,8 +60,8 @@ Codemagic builds, signs, archives and uploads every TestFlight build from the
    for both Debug and Release if the Xcode project is ever regenerated
    (`npx cap add ios` again would reset it).
 3. Fill in the App Privacy questionnaire and the rest of the store listing
-   using [`docs/store-listing.md`](store-listing.md) as the draft source —
-   it is marked for founder review before anything is submitted.
+   from [`docs/store-listing.md`](store-listing.md), which records what was
+   submitted for 1.0 (including the App Review notes Apple asked for).
 
 ## Cutting a release
 
@@ -78,6 +78,39 @@ build`, `npx cap sync ios`, resolves signing profiles, sets the build number,
 builds and archives the `.ipa`, and uploads it to TestFlight
 (`submit_to_testflight: true`, `submit_to_app_store: false` — nothing goes to
 public review automatically).
+
+Two things that look like failures and are not:
+
+- **"Another build is in review"** on the publishing step. Apple allows one
+  build per version in TestFlight beta review at a time, so every build
+  uploaded while an earlier one is still being reviewed fails the final
+  submit step with a 422. The build has still uploaded, processed, and is
+  already available to the internal TestFlight group. Nothing to fix.
+- **"No matching profiles found"** from Codemagic's own automatic signing
+  pre-step. That is why `codemagic.yaml` does signing in its explicit
+  "Fetch or create signing files" script instead: Apple's actual answer
+  (an unregistered bundle id, an unaccepted agreement, a key without App
+  Manager access) then shows in the log.
+
+## Submitting a version to the App Store
+
+TestFlight builds never reach the public. To ship a version:
+
+1. In App Store Connect open the version page (for example **1.0 Prepare for
+   Submission**), choose the processed build, and check the listing against
+   [`docs/store-listing.md`](store-listing.md).
+2. Set Version Release to manual if you want to check the live listing
+   before it appears, then **Add for Review** and **Submit to App Review**.
+3. Review usually takes a day or two. If Apple asks for more information,
+   reply in App Store Connect and also paste the answers into the App Review
+   Information notes field, so later submissions carry them.
+4. After approval, release the version, then tag the released commit:
+   `git tag v1.0.0 && git push origin v1.0.0`. The tag records what shipped;
+   it also triggers one more Codemagic build, which uploads a new build
+   number but changes nothing in the store.
+
+HomeKind 1.0 went live on 3 October 2026 at
+<https://apps.apple.com/au/app/homekind/id6816028407>.
 
 ## Versions and build numbers
 
