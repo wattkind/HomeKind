@@ -6,6 +6,10 @@ which warranties are ending soon or have already expired.
 
 **Home support that keeps the paperwork.**
 
+HomeKind 1.0 is on the App Store:
+<https://apps.apple.com/au/app/homekind/id6816028407>. The product page is
+<https://wattkind.ai/homekind/>.
+
 There is no account, no server and no cloud. Everything a household enters lives
 in the app's local database on that phone. Backing up or moving to a new phone is
 a plain zip file the person saves themselves, with the share sheet, to iCloud
@@ -84,9 +88,9 @@ setup and the steps to cut a release.
   contracts and the rules the codebase follows.
 - [`docs/release.md`](docs/release.md) — Codemagic and App Store Connect
   setup, and how to cut a release.
-- [`docs/store-listing.md`](docs/store-listing.md) — draft App Store listing
-  copy and App Privacy answers.
-- [`docs/privacy-statement.md`](docs/privacy-statement.md) — draft public
-  privacy statement for wattkind.ai/homekind/privacy.
+- [`docs/store-listing.md`](docs/store-listing.md) — the App Store listing
+  copy, App Privacy answers and screenshot set as submitted for 1.0.
+- [`docs/privacy-statement.md`](docs/privacy-statement.md) — the public
+  privacy statement; the canonical copy is the published page on wattkind.ai.
 - [`docs/decisions.md`](docs/decisions.md) — short architecture decision
   records for the choices particular to HomeKind.

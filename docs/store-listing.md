@@ -1,9 +1,9 @@
-# HomeKind — App Store listing (draft)
+# HomeKind — App Store listing
 
-Draft copy for the App Store Connect listing. Founder review required before
-submission — nothing here has been checked against the current App Store
-Connect form fields or character limits enforced at submission time beyond
-the counts noted below.
+The listing copy, App Privacy answers and screenshots submitted for HomeKind
+1.0, which is live at <https://apps.apple.com/au/app/homekind/id6816028407>
+(App Store Connect app id 6816028407). Keep this file in step with the
+listing when it changes.
 
 ## App name
 
@@ -67,10 +67,10 @@ web access beyond the device's own share sheet and file pickers.
 
 ## Support and privacy URLs
 
-- Support URL: to be confirmed by founder.
-- Privacy policy URL: `https://wattkind.ai/homekind/privacy` — draft content
-  is in [`docs/privacy-statement.md`](privacy-statement.md), also marked for
-  founder review.
+- Support URL: `https://wattkind.ai/homekind/`
+- Marketing URL: `https://wattkind.ai/homekind/`
+- Privacy policy URL: `https://wattkind.ai/homekind/privacy/` — source
+  paragraph in [`docs/privacy-statement.md`](privacy-statement.md).
 
 ## App Privacy (nutrition label) answers
 
@@ -91,13 +91,41 @@ alongside the submission:
 
 ## Screenshots
 
-Required device sizes (generate from the built app; not produced by this
-work package):
+The submitted 6.9" set (1320×2868) is in [`docs/store-screenshots/`](store-screenshots/),
+in upload order: devices list, device detail with attachments, warranties,
+add/edit form, settings, welcome. They are genuine renders of the built app
+with fictional sample data, captured in headless Chromium at a 440×956 CSS
+viewport at 3× (`isMobile`, fonts loaded, `main.scrollTop = 0`). Apple
+scales the 6.9" set for smaller phones, so no 6.5" set was uploaded.
+
+Required device sizes if regenerating:
 
 - 6.9" display: 1320×2868 or 1290×2796
-- 6.5" display: 1284×2778 or 1242×2688
+- 6.5" display (optional): 1284×2778 or 1242×2688
 
 No iPad screenshots are required. HomeKind targets iPhone only — confirm the
 Xcode target's device family is set to iPhone only (`TARGETED_DEVICE_FAMILY
 = "1"` in `ios/App/App.xcodeproj/project.pbxproj`) before submission; see the
 "Mark the app iPhone-only" step in [`docs/release.md`](release.md).
+
+## App Review notes (kept in App Review Information)
+
+Apple's first review of a new developer account asked for extra information
+(Guideline 2.1, "Information Needed"). The answers below live in the App
+Review Information notes field in App Store Connect so later submissions do
+not trigger the same request; keep them current.
+
+- **Purpose:** a simple record-keeping app for household appliances and
+  devices, so the manual, receipt and warranty date for each one is in one
+  place when something breaks. For homeowners and renters.
+- **Setup:** none. No login, account or sample files; every feature is
+  available on first launch after "Get started".
+- **External services:** none. No backend, data provider, authentication,
+  payment, analytics or AI service. The only outbound link is the privacy
+  statement on wattkind.ai, opened in an in-app browser sheet.
+- **Regional differences:** none. Identical in every region; English
+  (Australia) text.
+- **Regulated industry or protected content:** none.
+- A screen recording from a physical iPhone showing launch, adding a device,
+  attaching a photo and a PDF, the Warranties tab, and Settings > Back up was
+  supplied with the first submission.

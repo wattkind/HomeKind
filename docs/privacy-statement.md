@@ -1,7 +1,12 @@
-# Draft — founder review required
+# HomeKind privacy statement
 
-This is a draft of the short privacy statement for `wattkind.ai/homekind/privacy`.
-It has not been reviewed by the founder and should not be published as-is.
+Published at <https://wattkind.ai/homekind/privacy/> (founder-reviewed, live
+since October 2026). The published page in `red3112/WattKind-AI`
+(`homekind/privacy/index.html`) is the canonical copy; this file is the source
+paragraph and must be kept in step with it. The live page also states that the
+iPhone's own iCloud or computer backup may include HomeKind's data, that the
+statement will be updated before any version sends data off the phone, and gives
+`support@wattkind.ai` as the contact.
 
 ---
 
