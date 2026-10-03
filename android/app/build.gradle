@@ -1,0 +1,75 @@
+apply plugin: 'com.android.application'
+
+// The user-visible version comes from package.json so both platforms and Settings > About
+// agree. iOS reads MARKETING_VERSION from the Xcode project; keep the two in step by hand.
+def packageJson = new groovy.json.JsonSlurper().parse(file('../../package.json'))
+
+// Play needs a strictly increasing versionCode per upload. Codemagic passes its own build
+// counter as -PHOMEKIND_VERSION_CODE (see codemagic.yaml); a local build defaults to 1.
+def resolvedVersionCode = (project.hasProperty('HOMEKIND_VERSION_CODE')
+    ? project.property('HOMEKIND_VERSION_CODE')
+    : '1').toString().toInteger()
+
+// Upload-key signing. The keystore never lives in the repository: Codemagic injects it
+// and exports these variables when the workflow references the "homekind_upload" signing
+// identity (docs/release.md). Without them the release build is unsigned, which is fine
+// for a local check and useless for Play.
+def keystorePath = System.getenv('CM_KEYSTORE_PATH')
+def hasUploadKey = keystorePath != null && file(keystorePath).exists()
+
+android {
+    namespace = "ai.wattkind.homekind"
+    compileSdk = rootProject.ext.compileSdkVersion
+    defaultConfig {
+        applicationId "ai.wattkind.homekind"
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode resolvedVersionCode
+        versionName packageJson.version
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        aaptOptions {
+             // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
+             // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
+            ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    signingConfigs {
+        if (hasUploadKey) {
+            release {
+                storeFile file(keystorePath)
+                storePassword System.getenv('CM_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('CM_KEY_ALIAS')
+                keyPassword System.getenv('CM_KEY_PASSWORD')
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (hasUploadKey) {
+                signingConfig signingConfigs.release
+            }
+        }
+    }
+}
+
+repositories {
+    flatDir{
+        dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
+    implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
+    implementation project(':capacitor-android')
+    testImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
+    implementation project(':capacitor-cordova-android-plugins')
+}
+
+apply from: 'capacitor.build.gradle'

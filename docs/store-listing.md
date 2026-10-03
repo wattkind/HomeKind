@@ -98,6 +98,12 @@ with fictional sample data, captured in headless Chromium at a 440×956 CSS
 viewport at 3× (`isMobile`, fonts loaded, `main.scrollTop = 0`). Apple
 scales the 6.9" set for smaller phones, so no 6.5" set was uploaded.
 
+Both sets are produced by `scripts/store-screenshots.mjs` (`npm run build`,
+then `node scripts/store-screenshots.mjs ios` or `android`), which seeds the
+sample data through the app's own Restore flow and needs Google Chrome or a
+Chromium path in `HOMEKIND_CHROMIUM`. The warranty dates in the sample data
+are relative to the day it runs, so the pills always read as in the 1.0 set.
+
 Required device sizes if regenerating:
 
 - 6.9" display: 1320×2868 or 1290×2796
@@ -129,3 +135,88 @@ not trigger the same request; keep them current.
 - A screen recording from a physical iPhone showing launch, adding a device,
   attaching a photo and a PDF, the Warranties tab, and Settings > Back up was
   supplied with the first submission.
+
+## Google Play listing
+
+What to enter in Play Console for the Android release (organisation account
+**WattKind AI**, account id `4630259934178381173`, package
+`ai.wattkind.homekind`). Keep this in step with the console when it changes.
+Where Play asks the same question as Apple, the answer is the same as above.
+
+### App name (≤30 characters)
+
+HomeKind
+
+### Short description (≤80 characters)
+
+Manuals, receipts and warranty dates, kept on your phone.
+
+Character count: 55.
+
+### Full description (≤4000 characters)
+
+Same text as the App Store description above, with one line changed for the
+platform: "iCloud Drive or the Files app both work well" becomes "Google Drive
+or your phone's Files app both work well". Play renders plain paragraphs; no
+formatting is used.
+
+### Category and tags
+
+- App category: **House & Home**
+- Tags: Home improvement, Productivity
+
+### Contact details
+
+- Email: `support@wattkind.ai`
+- Website: `https://wattkind.ai/homekind/`
+- Privacy policy: `https://wattkind.ai/homekind/privacy/`
+
+### Graphics
+
+- App icon: 512×512 PNG, exported from `resources/icon.png` (mark on flat
+  Cream, no transparency). Play applies its own rounded mask.
+- Feature graphic (required): 1024×500 PNG,
+  `docs/store-screenshots/android/feature-graphic.png` — the approved
+  HomeKind lockup on Cream, nothing redrawn.
+- Phone screenshots (2 to 8, 16:9 or 9:16, each side 320–3840 px):
+  `docs/store-screenshots/android/`, 1080×1920, the same six screens in the
+  same order as the iOS set, rendered from the built app with the same
+  fictional sample data. No 7" or 10" tablet screenshots: HomeKind targets
+  phones only, and the listing declares no tablet support.
+
+### Declarations ("Set up your app")
+
+- **App access:** all functionality is available without special access. No
+  login, no demo account.
+- **Ads:** no, the app contains no ads.
+- **Content rating (IARC questionnaire):** category Utility, Productivity,
+  Communication or Other; answer no to every content question. Expected
+  rating: Everyone / PEGI 3.
+- **Target audience and content:** age group **18 and over** only. HomeKind is
+  household admin for the adults in a home, not a product for children, and
+  choosing only adults keeps it out of the Families policy. "Appeal to
+  children": no.
+- **News app:** no. **COVID-19 contact tracing or status:** no.
+- **Data safety:** does the app collect or share any user data: **No**. Every
+  category stays unchecked. Reasoning is the same as the App Privacy answers
+  above: no network calls, no server, no analytics, no crash reporting, no
+  identifiers; the backup zip is the person moving their own data through the
+  system share sheet to a destination they choose. Data is not transferred,
+  so "encrypted in transit" is not applicable. Users can delete all data
+  in-app (Settings > Delete everything) without any account.
+- **Government apps:** no. **Financial features:** none. **Health:** no
+  health features.
+- **Advertising ID:** the app does not use it (it links no ads or analytics
+  SDK; the merged manifest carries no `AD_ID` permission).
+
+### Review notes
+
+Play rarely asks, but if a reviewer requests information, reuse the App
+Review notes above: purpose, no setup, no external services, no regional
+differences, nothing regulated.
+
+### Release notes (first Android release)
+
+First release of HomeKind for Android. Keep every device's manual, receipt
+and warranty date on your phone, see which warranties are ending soon, and
+back everything up to a single zip file. No account, no cloud.

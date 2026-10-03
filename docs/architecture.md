@@ -1,6 +1,6 @@
 # HomeKind architecture
 
-HomeKind v1 is a local-only React app wrapped in Capacitor for iOS. There is no server,
+HomeKind v1 is a local-only React app wrapped in Capacitor for iOS and Android. There is no server,
 no account and no network call anywhere in the app.
 
 ```
@@ -13,7 +13,8 @@ src/
   styles/               tokens.css (brand custom properties), base.css (reset, fonts, focus)
   data/                 Dexie database and all record logic (no React)
   storage/              AttachmentStorage adapters: native filesystem, web IndexedDB, memory
-  platform/             thin wrappers over Capacitor plugins with browser fallbacks
+  platform/             thin wrappers over Capacitor plugins with browser fallbacks; backButton.ts
+                        gives Android's back gesture the same router and dialogs
   screens/              one file per screen
   components/           shared UI pieces; PdfPages.tsx renders PDFs with pdf.js (legacy build,
                         lazy-loaded, worker bundled locally) because WKWebView cannot scroll a PDF in an iframe
@@ -22,6 +23,7 @@ public/fonts            Nunito and Inter variable TTFs, bundled (no CDN)
 public/brand            approved HomeKind PNG artwork (never redrawn)
 resources/              source mark for @capacitor/assets icon and splash generation
 ios/                    Capacitor iOS project (generated, committed without Pods)
+android/                Capacitor Android project (generated, committed without build output)
 ```
 
 ## Module contracts
@@ -141,6 +143,11 @@ export function pickFile(accept: string): Promise<File | null>; // <input type="
 export function openExternal(url: string): Promise<void>; // @capacitor/browser; web: window.open
 // runtime.ts
 export const isNative: boolean; // Capacitor.isNativePlatform()
+export const platform: 'ios' | 'android' | 'web';
+export const isAndroid: boolean; // only for platform-specific wording
+// backButton.ts
+export function decideBackAction(input: { hasOpenDialog: boolean; atRoot: boolean }): BackAction;
+export function installBackButtonHandler(goBack: () => void): void; // Android only; no-op elsewhere
 ```
 
 ## Scrolling
@@ -149,6 +156,8 @@ The document never scrolls. `html`, `body` and `#root` are fixed at viewport
 height; the shell is a column flexbox and `<main>` is the scroll container.
 On iOS `scrollEnabled: false` in `capacitor.config.ts` turns off the web view's
 own scroll view (no rubber-banding); inner overflow containers still scroll.
+Android's Chromium web view has no equivalent setting and needs none: the same
+`<main>` container scrolls and the page itself never does.
 See `docs/decisions.md`.
 
 ## Rules

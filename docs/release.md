@@ -2,7 +2,12 @@
 
 There is no Mac in this project's toolchain (the founder develops on Windows).
 Codemagic builds, signs, archives and uploads every TestFlight build from the
-`codemagic.yaml` workflow `ios-testflight` at the repository root.
+`codemagic.yaml` workflow `ios-testflight` at the repository root, and builds,
+signs and uploads every Android app bundle from the `android-play` workflow in
+the same file. One pushed `v*` tag runs both.
+
+The iOS sections come first; [Android and Google Play](#android-and-google-play)
+is further down.
 
 ## Prerequisites
 
@@ -125,6 +130,146 @@ number from Codemagic build number` script runs `agvtool new-version -all
   monotonically increasing build counter for the workflow. Nobody needs to
   bump this by hand.
 
+## Android and Google Play
+
+### Prerequisites
+
+- A Google Play developer account. HomeKind publishes from the **WattKind AI**
+  organisation account (Play Console account id `4630259934178381173`). An
+  organisation account is not subject to the closed-testing rule that applies
+  to personal accounts created since late 2023 (12 testers for 14 days before
+  production access), so the path is internal testing, then production review.
+- The app's package name is `ai.wattkind.homekind`, the same string as the iOS
+  bundle id, set as `appId` in `capacitor.config.ts` and `applicationId` in
+  `android/app/build.gradle`. Play fixes it permanently on first upload.
+
+### One-time: the upload keystore
+
+Google Play App Signing holds the key that actually signs what phones install;
+we only hold an _upload_ key, used to sign bundles sent to Play. Make it once:
+
+1. On Windows, open a terminal where `keytool` is available (it ships with any
+   JDK; Android Studio bundles one under `jbr\bin`). Run:
+
+   ```
+   keytool -genkeypair -v -keystore homekind-upload.jks -alias homekind -keyalg RSA -keysize 2048 -validity 10000
+   ```
+
+   Use one strong password for both the keystore and the key, and answer the
+   name prompts with `WattKind AI`.
+
+2. In Codemagic open **Team settings > Code signing identities > Android
+   keystores**, upload `homekind-upload.jks`, enter the password and alias, and
+   set the **reference name** to exactly `homekind_upload` — `codemagic.yaml`
+   names it under `android_signing`. Codemagic then exports
+   `CM_KEYSTORE_PATH`, `CM_KEYSTORE_PASSWORD`, `CM_KEY_ALIAS` and
+   `CM_KEY_PASSWORD` to the build, which `android/app/build.gradle` reads.
+3. Keep the `.jks` file and its password in the password manager next to the
+   iOS certificate key. The repository's `.gitignore` refuses `*.jks` and
+   `*.keystore`. If the upload key is ever lost, Play Console has a
+   **Request upload key reset** flow under App integrity; it takes a few days
+   but the app and its signing key are unaffected.
+
+### One-time: Play Console app record
+
+1. **Create app** in Play Console: name `HomeKind`, default language English
+   (Australia), type App, free. A free app cannot later be made paid.
+2. Work through the **Dashboard > Set up your app** tasks using
+   [`docs/store-listing.md`](store-listing.md) ("Google Play listing" section)
+   for every answer: privacy policy URL, app access, ads, content rating,
+   target audience, data safety, government apps, financial features, health,
+   store listing copy and graphics, and the app category.
+3. **App integrity**: accept Play App Signing when the first bundle is
+   uploaded (it is the default for new apps). The upload key certificate shown
+   there must match `homekind-upload.jks`.
+
+### One-time: let Codemagic upload to Play
+
+Codemagic publishes with a Google Cloud service account that Play Console has
+been told to trust.
+
+1. In Google Cloud console, create (or reuse) a project, enable the **Google
+   Play Android Developer API**, create a service account named something like
+   `codemagic-homekind`, and create a **JSON key** for it. Download it once.
+2. In Play Console, **Users and permissions > Invite new users**, enter the
+   service account's email address and grant it, for the HomeKind app only,
+   **Release to testing tracks** (and **Manage testing tracks** if you want it
+   to create the internal release the first time). Admin is not needed.
+3. In Codemagic, HomeKind app → **Environment variables**: name
+   `GCLOUD_SERVICE_ACCOUNT_CREDENTIALS`, value the whole JSON file's contents,
+   group `google_play`, tick **Secure**. Delete the downloaded JSON.
+4. **The first bundle has to be uploaded by hand.** Play's API refuses to
+   publish to an app that has never had a bundle, so the first
+   `android-play` build will succeed through the Gradle step and fail at
+   publishing. Download the `.aab` from that build's artifacts, and in Play
+   Console go to **Testing > Internal testing > Create new release**, upload
+   it, and roll it out to the internal testers list (add your own Google
+   account there). Every later build publishes itself to the internal track.
+
+### Cutting an Android release
+
+The same tag that builds iOS builds Android: `git tag v1.1.0 && git push
+origin v1.1.0`, or **Start new build** in Codemagic with the `android-play`
+workflow. The workflow runs `npm ci`, lint, typecheck, test, `npm run build`,
+`npx cap sync android`, checks the keystore was injected, runs
+`./gradlew bundleRelease` with the Codemagic build number as `versionCode`,
+prints the permissions in the merged manifest (expect `INTERNET` only), and
+uploads the signed `.aab` to the **internal** track. Nothing reaches the
+public from Codemagic.
+
+To ship a version to the public:
+
+1. Install the internal-track build on a real Android phone from the Play
+   Store (via the internal testers link) and check the release notes'
+   features, plus the Android-specific items: the back gesture closes dialogs
+   and steps back through screens, the camera and photo picker work, the
+   file picker takes a PDF, Back up opens the share sheet and lands in Google
+   Drive or Files, Restore reads that zip back, and the keyboard does not
+   cover the add-device form.
+2. In Play Console, **Production > Create new release**, pick the build from
+   the internal track (**Add from library**), paste the release notes, review,
+   and **Start rollout to production**. Google's review of a new app can take
+   up to about a week; later updates are usually hours. Set the rollout to
+   **Managed publishing** under Publishing overview if you want to check the
+   listing before it goes live.
+3. After it is live, add the Play badge beside the App Store badge on
+   <https://wattkind.ai/homekind/> and update the privacy page's backup
+   sentence (see [`docs/privacy-statement.md`](privacy-statement.md)); the
+   store URL is
+   `https://play.google.com/store/apps/details?id=ai.wattkind.homekind`.
+
+### Android versions and build numbers
+
+- `versionName` (user-visible, e.g. `1.0.0`) is read by Gradle from
+  `package.json`'s `version`, so it never drifts from Settings > About. iOS
+  still takes `MARKETING_VERSION` from the Xcode project; bump both together.
+- `versionCode` must strictly increase per Play upload. Codemagic passes its
+  build number as `-PHOMEKIND_VERSION_CODE`; it is the same counter the iOS
+  workflow writes into `CFBundleVersion`, so the two platforms' build numbers
+  match. A local build without the property gets `1`.
+
+### Running the Android app locally (Windows)
+
+Unlike iOS, Android can be built and run on the development machine:
+install Android Studio, then `npm run build && npx cap sync android && npx
+cap open android` and run on an emulator or a USB-connected phone. The
+project in `android/` is committed; only build output, `local.properties`
+and the copied web assets are ignored.
+
+### Android permissions and backup
+
+The merged manifest declares `INTERNET` only (the web view needs it to serve
+the bundled app from its local origin; HomeKind makes no network calls). The
+camera and photo picker go through system intents, so no `CAMERA` or media
+permission is requested and Android shows no permission prompts. Attachments
+live in the app's private files directory (`Directory.Data`) and the backup
+zip is written to the app's cache directory and handed to the share sheet
+through the FileProvider Capacitor configures.
+
+`android:allowBackup` is left on, so a phone's Google backup may include
+HomeKind's data in the same way iCloud backup does on iPhone; the privacy
+statement says so.
+
 ## Regenerating the icon and splash screen
 
 The approved source mark is `resources/homekind-mark-original.png` — it is
@@ -134,13 +279,18 @@ new approved mark is supplied):
 ```
 node scripts/make-icon-sources.mjs
 npx capacitor-assets generate --ios --iconBackgroundColor '#FFF6EB' --splashBackgroundColor '#FFF6EB'
+npx capacitor-assets generate --android --iconBackgroundColor '#FFF6EB' --splashBackgroundColor '#FFF6EB'
 ```
 
 The first command writes flat-Cream composites to `resources/` (`icon.png`,
 `icon-foreground.png`, `icon-background.png`, `splash.png`,
 `splash-dark.png`). The second reads those and writes the actual iOS asset
-catalog entries into `ios/App/App/Assets.xcassets`. Commit the regenerated
-files in both `resources/` and `ios/App/App/Assets.xcassets`.
+catalog entries into `ios/App/App/Assets.xcassets`; the third writes the
+Android launcher icons (adaptive foreground and background layers plus legacy
+PNGs) and splash drawables into `android/app/src/main/res`. Commit the
+regenerated files in all three places. The adaptive icon XML insets the
+foreground by 16.7%, so the mark at ~78% of the source lands inside Android's
+66dp safe circle without a separate, smaller source.
 
 ## What `PrivacyInfo.xcprivacy` declares, and why
 
