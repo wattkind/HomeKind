@@ -127,8 +127,10 @@ workflows:
   android-play:
     name: HomeKind Android Play
     max_build_duration: 45
-    # Android needs no Mac. Linux is cheaper and has the SDK and a JDK preinstalled.
-    instance_type: linux_x2
+    # The same machine type as the iOS workflow: Codemagic's Mac images ship the Android
+    # SDK and JDKs too, and it is the instance type this account's billing plan allows
+    # (linux_x2 was refused with "not available with the current billing plan").
+    instance_type: mac_mini_m2
     environment:
       # Capacitor 8 compiles with Java 21 (android/app/capacitor.build.gradle).
       java: 21
