@@ -198,13 +198,13 @@ been told to trust.
 3. In Codemagic, HomeKind app → **Environment variables**: name
    `GCLOUD_SERVICE_ACCOUNT_CREDENTIALS`, value the whole JSON file's contents,
    group `google_play`, tick **Secure**. Delete the downloaded JSON.
-4. **The first bundle has to be uploaded by hand.** Play's API refuses to
-   publish to an app that has never had a bundle, so the first
-   `android-play` build will succeed through the Gradle step and fail at
-   publishing. Download the `.aab` from that build's artifacts, and in Play
-   Console go to **Testing > Internal testing > Create new release**, upload
-   it, and roll it out to the internal testers list (add your own Google
-   account there). Every later build publishes itself to the internal track.
+4. That is all. Codemagic's publishing step creates the internal-testing
+   release itself, including the very first one: HomeKind's first bundle
+   (version code 2, 6 October 2026) was published this way with the app
+   record already created in Play Console. If a build ever fails at the
+   publishing step with "package not found", the app record does not exist
+   yet or the service account has not been granted access; fix that rather
+   than uploading by hand, and re-run the build.
 
 ### Cutting an Android release
 
@@ -214,8 +214,9 @@ workflow. The workflow runs `npm ci`, lint, typecheck, test, `npm run build`,
 `npx cap sync android`, checks the keystore was injected, runs
 `./gradlew bundleRelease` with the Codemagic build number as `versionCode`,
 prints the permissions in the merged manifest (expect `INTERNET` only), and
-uploads the signed `.aab` to the **internal** track. Nothing reaches the
-public from Codemagic.
+uploads the signed `.aab` to the **internal** track, where it is live for
+the internal testers list immediately (`submit_as_draft: false`), without
+release notes. Nothing reaches the public from Codemagic.
 
 To ship a version to the public:
 
