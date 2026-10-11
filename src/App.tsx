@@ -1,6 +1,7 @@
 import { createHashRouter, Navigate, RouterProvider } from 'react-router-dom';
 
 import { Layout } from './components/Layout';
+import { installBackButtonHandler } from './platform/backButton';
 import { DeviceDetailScreen } from './screens/DeviceDetailScreen';
 import { DeviceFormScreen } from './screens/DeviceFormScreen';
 import { DeviceListScreen } from './screens/DeviceListScreen';
@@ -26,6 +27,9 @@ const router = createHashRouter([
     ],
   },
 ]);
+
+// Android's back button/gesture drives the same router (no-op on iOS and in a browser).
+installBackButtonHandler(() => void router.navigate(-1));
 
 export function App() {
   return <RouterProvider router={router} />;

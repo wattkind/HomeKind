@@ -166,3 +166,64 @@ answer. The explicit step prints it. Capacitor 8 resolves plugins with Swift
 Package Manager, so there is no CocoaPods workspace to build.
 
 **Rules out:** `ios_signing` in `environment`; any `.xcworkspace` path.
+
+## Android from the same Capacitor project
+
+**Decision:** the Android app is the same web bundle in a Capacitor Android
+shell, committed under `android/`, with no Android-only code beyond the
+platform wrappers in `src/platform/`.
+
+**Why:** everything HomeKind does on iOS (local database, attachment files,
+camera, file picker, share sheet, in-app browser) has a Capacitor plugin with
+an Android implementation already in the dependency list. Chromium's web view
+renders the same CSS, pdf.js and fonts. A second codebase would double the
+release work for a single-founder product with nothing platform-specific to
+show for it.
+
+**Rules out:** a native Android rewrite, a Compose or Kotlin UI layer, and
+any feature that only one platform can have; platform differences stay in
+`src/platform/` and in wording (`isAndroid`), never in screens.
+
+## Android back button drives the router
+
+**Decision:** `src/platform/backButton.ts` registers a Capacitor
+`backButton` listener on Android that closes an open `<dialog>` first, then
+steps the router back, and at the start of history minimises the app.
+
+**Why:** Capacitor's default walks the web view's own history and then exits
+the activity. With hash routing that mostly works, but it ignores open
+dialogs (back would navigate underneath a confirmation sheet) and it kills
+the app at the root where Android users expect it to go to the background.
+The decision rule is a pure function with a unit test; the wiring is a few
+lines.
+
+**Rules out:** per-screen back handling, and any screen that depends on
+`window.history` directly rather than the router.
+
+## Play App Signing with an upload key held in Codemagic
+
+**Decision:** Google holds the app signing key (Play App Signing, the default
+for new apps). We hold only an upload keystore, stored once in Codemagic as
+the `homekind_upload` signing identity and read by `android/app/build.gradle`
+from the `CM_KEYSTORE_*` variables. `versionName` comes from `package.json`;
+`versionCode` is Codemagic's build number, the same counter as iOS.
+
+**Why:** it mirrors the iOS arrangement (signing material lives in Codemagic,
+never in the repository), a lost upload key is recoverable through Play
+Console where a lost app signing key is not, and a single version source
+keeps Settings > About, the App Store and Play in agreement.
+
+**Rules out:** a keystore in Git, local signing on the development machine
+as the release path, and hand-edited version codes.
+
+## Phones only, portrait only, on Android too
+
+**Decision:** the Android manifest locks `MainActivity` to portrait, and the
+Play listing declares no tablet support or tablet screenshots.
+
+**Why:** the same reasoning as iPhone-only on iOS: v1 has one layout, and
+landscape or tablet widths would need design work that is not needed to ship
+a useful app.
+
+**Rules out:** landscape, tablet screenshots, and Chromebook or foldable
+layouts in v1.

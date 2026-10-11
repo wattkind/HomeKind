@@ -8,6 +8,7 @@ import { BrandMark, WattKindWordmark, Wordmark } from '../components/Wordmark';
 import { applyImport, deleteAllData, exportBackup, planImport } from '../data/backup';
 import { fileToBytes, pickFile } from '../platform/files';
 import { openExternal } from '../platform/browser';
+import { isAndroid } from '../platform/runtime';
 import { shareFile } from '../platform/share';
 import type { ImportPlan } from '../types';
 import { APP_VERSION } from '../version';
@@ -111,8 +112,9 @@ export function SettingsScreen() {
         </h2>
         <p>
           Your devices, photos and documents are stored only on this phone. A backup file is the
-          only way to get them back if you lose or replace your phone. Save it to iCloud Drive or
-          the Files app, and make a new one after big changes.
+          only way to get them back if you lose or replace your phone. Save it to{' '}
+          {isAndroid ? 'Google Drive or your Files app' : 'iCloud Drive or the Files app'}, and make
+          a new one after big changes.
         </p>
         <button
           type="button"

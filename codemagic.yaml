@@ -1,11 +1,13 @@
 # Codemagic build configuration for HomeKind.
 #
 # There is no Mac in this project's toolchain, so every iOS build, archive and
-# TestFlight upload happens here. See docs/release.md for the one-time setup
-# this workflow depends on (the App Store Connect integration and the
-# App Store Connect app record).
+# TestFlight upload happens here, and the Android build runs alongside it so
+# one pushed tag produces both. See docs/release.md for the one-time setup
+# each workflow depends on.
 #
-# One workflow only: build, test, archive and upload to TestFlight.
+# Two workflows:
+#   ios-testflight  build, test, archive and upload to TestFlight
+#   android-play    build, test, sign and upload an app bundle to Play's internal track
 workflows:
   ios-testflight:
     name: HomeKind iOS TestFlight
@@ -121,3 +123,91 @@ workflows:
         auth: integration
         submit_to_testflight: true
         submit_to_app_store: false
+
+  android-play:
+    name: HomeKind Android Play
+    max_build_duration: 45
+    # The same machine type as the iOS workflow: Codemagic's Mac images ship the Android
+    # SDK and JDKs too, and it is the instance type this account's billing plan allows
+    # (linux_x2 was refused with "not available with the current billing plan").
+    instance_type: mac_mini_m2
+    environment:
+      # Capacitor 8 compiles with Java 21 (android/app/capacitor.build.gradle).
+      java: 21
+      node: lts
+      # The Play upload keystore, uploaded once in the Codemagic UI under
+      # Team settings > Code signing identities > Android keystores with the reference
+      # name "homekind_upload". Codemagic then exports CM_KEYSTORE_PATH,
+      # CM_KEYSTORE_PASSWORD, CM_KEY_ALIAS and CM_KEY_PASSWORD, which
+      # android/app/build.gradle reads. See docs/release.md.
+      android_signing:
+        - homekind_upload
+      groups:
+        # Holds GCLOUD_SERVICE_ACCOUNT_CREDENTIALS: the JSON key of the Google Cloud
+        # service account that Play Console grants release access. See docs/release.md.
+        - google_play
+    triggering:
+      events:
+        - tag
+      tag_patterns:
+        - pattern: 'v*'
+          include: true
+      cancel_previous_builds: true
+    cache:
+      cache_paths:
+        - $HOME/.npm
+        - $HOME/.gradle/caches
+
+    scripts:
+      - name: npm ci
+        script: npm ci
+
+      - name: npm run lint
+        script: npm run lint
+
+      - name: npm run typecheck
+        script: npm run typecheck
+
+      - name: npm test
+        script: npm test
+
+      - name: npm run build
+        script: npm run build
+
+      - name: npx cap sync android
+        script: npx cap sync android
+
+      - name: Check the upload keystore is present
+        script: |
+          set -e
+          if [ -z "${CM_KEYSTORE_PATH:-}" ] || [ ! -f "$CM_KEYSTORE_PATH" ]; then
+            echo "No Android keystore was injected. Add the upload keystore in Codemagic under"
+            echo "Team settings > Code signing identities > Android keystores with the reference"
+            echo "name 'homekind_upload' (see docs/release.md), then start a new build."
+            exit 1
+          fi
+
+      - name: Build the signed release bundle
+        # Every Play upload needs a strictly higher versionCode. Codemagic's $BUILD_NUMBER is
+        # monotonic for this app, the same counter the iOS workflow uses for CFBundleVersion.
+        script: |
+          cd android
+          ./gradlew bundleRelease -PHOMEKIND_VERSION_CODE="$BUILD_NUMBER" --no-daemon
+
+      - name: Show what was declared
+        # The merged manifest is what Play reads. HomeKind should request INTERNET only.
+        script: |
+          cat android/app/build/intermediates/merged_manifests/release/processReleaseManifest/AndroidManifest.xml \
+            | grep -E "uses-permission|versionCode|versionName" || true
+
+    artifacts:
+      - android/app/build/outputs/bundle/release/*.aab
+      - android/app/build/outputs/mapping/release/mapping.txt
+
+    publishing:
+      google_play:
+        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+        # Internal testing only. Promotion to closed testing or production is done by hand
+        # in Play Console, the same way App Store submission is done by hand.
+        track: internal
+        submit_as_draft: false

@@ -26,3 +26,9 @@ ios/capacitor-cordova-ios-plugins
 !.vscode/extensions.json
 .idea
 *.log
+
+# Android: Gradle output and local SDK path are covered by android/.gitignore; the upload
+# keystore lives in Codemagic only, never here
+*.jks
+*.keystore
+android/app/release

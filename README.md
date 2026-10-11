@@ -1,19 +1,20 @@
 # HomeKind
 
-HomeKind by WattKind AI is a free, local-only iOS app that keeps every household
-device's manual, receipt and warranty date on the phone, and tells the household
+HomeKind by WattKind AI is a free, local-only app for iPhone and Android that keeps
+every household device's manual, receipt and warranty date on the phone, and tells the household
 which warranties are ending soon or have already expired.
 
 **Home support that keeps the paperwork.**
 
-HomeKind 1.0 is on the App Store:
-<https://apps.apple.com/au/app/homekind/id6816028407>. The product page is
-<https://wattkind.ai/homekind/>.
+HomeKind 1.0 is on the App Store,
+<https://apps.apple.com/au/app/homekind/id6816028407>, and on Google Play,
+<https://play.google.com/store/apps/details?id=ai.wattkind.homekind>. The
+product page is <https://wattkind.ai/homekind/>.
 
 There is no account, no server and no cloud. Everything a household enters lives
 in the app's local database on that phone. Backing up or moving to a new phone is
 a plain zip file the person saves themselves, with the share sheet, to iCloud
-Drive or Files.
+Drive, Google Drive or the phone's Files app.
 
 ## v1 scope
 
@@ -33,14 +34,14 @@ Drive or Files.
 - No AI features — nothing reads, summarises or answers questions about a
   manual.
 - No analytics, crash reporting or usage tracking of any kind.
-- No iPad-specific layout; the app targets iPhone only.
+- No iPad or tablet layout; the app targets phones only.
 - No dark mode design.
 
 ## What this repository shares with other WattKind AI products
 
 Nothing. HomeKind has its own codebase, its own configuration, its own local
-database, its own hosting (none — it ships as an iOS app, not a web service) and
-its own secrets. It shares no code, environment variables, database project,
+database, its own hosting (none — it ships as iOS and Android apps, not a web service)
+and its own secrets. It shares no code, environment variables, database project,
 hosting project or credentials with any other WattKind AI product, including
 StudyKind. The only thing HomeKind shares with its sibling products is the
 WattKind AI brand: the visual identity and tone described in the canonical
@@ -48,8 +49,10 @@ brand guide.
 
 ## Run locally (Windows or any machine without a Mac)
 
-HomeKind's UI runs as an ordinary Vite web app during development; only the
-iOS packaging step needs a Mac (handled by Codemagic — see below).
+HomeKind's UI runs as an ordinary Vite web app during development. Only the
+iOS packaging step needs a Mac (handled by Codemagic — see below); the Android
+build runs on Codemagic too, and also on Windows with Android Studio
+(`npx cap open android`).
 
 ```
 npm ci
@@ -76,20 +79,22 @@ for how those fallbacks are structured.
 | `npm run test:watch` | Run Vitest in watch mode.                                  |
 | `npm run verify`     | Lint, typecheck, test and build, in that order.            |
 
-## Releasing to TestFlight
+## Releasing
 
 There is no Mac in this project's toolchain. Codemagic builds, signs and
-uploads the iOS app. See [`docs/release.md`](docs/release.md) for the one-time
-setup and the steps to cut a release.
+uploads the iOS app to TestFlight and the Android app bundle to Google Play's
+internal track, both from one pushed `v*` tag. See
+[`docs/release.md`](docs/release.md) for the one-time setup and the steps to
+cut a release.
 
 ## Docs index
 
 - [`docs/architecture.md`](docs/architecture.md) — the data model, module
   contracts and the rules the codebase follows.
-- [`docs/release.md`](docs/release.md) — Codemagic and App Store Connect
-  setup, and how to cut a release.
-- [`docs/store-listing.md`](docs/store-listing.md) — the App Store listing
-  copy, App Privacy answers and screenshot set as submitted for 1.0.
+- [`docs/release.md`](docs/release.md) — Codemagic, App Store Connect and
+  Google Play Console setup, and how to cut a release.
+- [`docs/store-listing.md`](docs/store-listing.md) — the App Store and Google
+  Play listing copy, privacy answers and screenshot sets.
 - [`docs/privacy-statement.md`](docs/privacy-statement.md) — the public
   privacy statement; the canonical copy is the published page on wattkind.ai.
 - [`docs/decisions.md`](docs/decisions.md) — short architecture decision
