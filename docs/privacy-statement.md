@@ -8,8 +8,8 @@ iPhone's own iCloud or computer backup may include HomeKind's data, that the
 statement will be updated before any version sends data off the phone, and gives
 `support@wattkind.ai` as the contact.
 
-**Android (to add to the live page with the Play release):** the same sentence
-applies to Android's own device backup. The Android app leaves `allowBackup`
+**Android:** the live page's backup sentence covers Android's own device backup
+too (added with the Play release). The Android app leaves `allowBackup`
 on, so Google's backup of the phone may include HomeKind's records and
 attachments, under the person's own Google account and their phone's backup
 settings, exactly as iCloud backup does on iPhone. HomeKind itself still sends

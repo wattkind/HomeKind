@@ -138,9 +138,11 @@ not trigger the same request; keep them current.
 
 ## Google Play listing
 
-What to enter in Play Console for the Android release (organisation account
-**WattKind AI**, account id `4630259934178381173`, package
-`ai.wattkind.homekind`). Keep this in step with the console when it changes.
+The listing as submitted for the Android release, live since 11 October 2026
+at <https://play.google.com/store/apps/details?id=ai.wattkind.homekind>
+(organisation account **WattKind AI**, account id `4630259934178381173`,
+package `ai.wattkind.homekind`). Keep this in step with the console when it
+changes.
 Where Play asks the same question as Apple, the answer is the same as above.
 
 ### App name (≤30 characters)

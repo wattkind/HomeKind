@@ -239,6 +239,10 @@ To ship a version to the public:
    store URL is
    `https://play.google.com/store/apps/details?id=ai.wattkind.homekind`.
 
+HomeKind for Android went live on Google Play on 11 October 2026 at
+<https://play.google.com/store/apps/details?id=ai.wattkind.homekind>, from
+version code 2 (1.0.0), the first bundle Codemagic published.
+
 ### Android versions and build numbers
 
 - `versionName` (user-visible, e.g. `1.0.0`) is read by Gradle from

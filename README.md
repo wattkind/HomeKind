@@ -6,10 +6,10 @@ which warranties are ending soon or have already expired.
 
 **Home support that keeps the paperwork.**
 
-HomeKind 1.0 is on the App Store:
-<https://apps.apple.com/au/app/homekind/id6816028407>. The Android build is on
-its way to Google Play (see [`docs/release.md`](docs/release.md)). The product
-page is <https://wattkind.ai/homekind/>.
+HomeKind 1.0 is on the App Store,
+<https://apps.apple.com/au/app/homekind/id6816028407>, and on Google Play,
+<https://play.google.com/store/apps/details?id=ai.wattkind.homekind>. The
+product page is <https://wattkind.ai/homekind/>.
 
 There is no account, no server and no cloud. Everything a household enters lives
 in the app's local database on that phone. Backing up or moving to a new phone is
