@@ -1,7 +1,7 @@
 # HomeKind privacy statement
 
 Published at <https://wattkind.ai/homekind/privacy/> (founder-reviewed, live
-since October 2026). The published page in `red3112/WattKind-AI`
+since October 2026). The published page in `wattkind/WattKind-AI`
 (`homekind/privacy/index.html`) is the canonical copy; this file is the source
 paragraph and must be kept in step with it. The live page also states that the
 iPhone's own iCloud or computer backup may include HomeKind's data, that the
