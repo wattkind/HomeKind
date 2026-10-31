@@ -5,11 +5,17 @@ import { ShareIcon, TrashIcon } from '../components/Icons';
 import { ConfirmDialog, Modal } from '../components/Modal';
 import { Screen } from '../components/Screen';
 import { BrandMark, WattKindWordmark, Wordmark } from '../components/Wordmark';
-import { applyImport, deleteAllData, exportBackup, planImport } from '../data/backup';
-import { fileToBytes, pickFile } from '../platform/files';
+import {
+  applyImport,
+  deleteAllData,
+  exportBackup,
+  exportBackupToCache,
+  planImport,
+} from '../data/backup';
+import { pickFile } from '../platform/files';
 import { openExternal } from '../platform/browser';
-import { isAndroid } from '../platform/runtime';
-import { shareFile } from '../platform/share';
+import { isAndroid, isNative } from '../platform/runtime';
+import { shareFile, shareUri } from '../platform/share';
 import type { ImportPlan } from '../types';
 import { APP_VERSION } from '../version';
 
@@ -46,9 +52,20 @@ export function SettingsScreen() {
     setBackupStatus(null);
     setBackupError(null);
     try {
-      const { filename, bytes } = await exportBackup();
-      await shareFile(filename, bytes, 'application/zip');
-      setBackupStatus(`Backup ready: ${filename}`);
+      let filename: string;
+      let shared: boolean;
+      if (isNative) {
+        // Built on disk by native code; the web view never holds the attachments.
+        const file = await exportBackupToCache();
+        filename = file.filename;
+        shared = await shareUri(filename, file.uri);
+      } else {
+        const file = await exportBackup();
+        filename = file.filename;
+        shared = await shareFile(filename, file.bytes, 'application/zip');
+      }
+      // A dismissed share sheet saved nothing, so say nothing rather than "ready".
+      if (shared) setBackupStatus(`Backup ready: ${filename}`);
     } catch (error) {
       setBackupError(`The backup could not be made. ${errorMessage(error)}`);
     } finally {
@@ -62,7 +79,8 @@ export function SettingsScreen() {
     try {
       const file = await pickFile('.zip,application/zip');
       if (!file) return;
-      const plan = await planImport(await fileToBytes(file));
+      // The zip is streamed from the picked file, never loaded whole.
+      const plan = await planImport(file);
       setRestore({ step: 'plan', plan });
     } catch (error) {
       setRestoreError(`That backup could not be read. ${errorMessage(error)}`);

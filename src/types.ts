@@ -61,12 +61,24 @@ export const ENDING_SOON_DAYS = 90;
  */
 export interface AttachmentStorage {
   write(deviceId: string, attachmentId: string, ext: string, data: Uint8Array): Promise<void>;
+  /**
+   * Write a file in pieces, for restoring from a backup without holding a whole
+   * attachment in memory. The file exists once `close` resolves, even if empty;
+   * a writer that is never closed must not leave a record-less file behind.
+   */
+  openWriter(deviceId: string, attachmentId: string, ext: string): AttachmentWriter;
   read(deviceId: string, attachmentId: string, ext: string): Promise<Uint8Array>;
   delete(deviceId: string, attachmentId: string, ext: string): Promise<void>;
   /** Remove every file for a device (used when the device is deleted). */
   deleteAllForDevice(deviceId: string): Promise<void>;
   /** Remove every stored file (used by "delete all data" and by restore-with-replace). */
   clear(): Promise<void>;
+}
+
+/** Incremental writer returned by `AttachmentStorage.openWriter`. */
+export interface AttachmentWriter {
+  append(chunk: Uint8Array): Promise<void>;
+  close(): Promise<void>;
 }
 
 /** Shape of `data.json` inside a backup zip. */
