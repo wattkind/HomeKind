@@ -23,7 +23,7 @@ public/fonts            Nunito and Inter variable TTFs, bundled (no CDN)
 public/brand            approved HomeKind PNG artwork (never redrawn)
 resources/              source mark for @capacitor/assets icon and splash generation
 ios/                    Capacitor iOS project (generated, committed without Pods); App/BackupZipPlugin.swift
-                        and App/BridgeViewController.swift are hand-written and registered on Main.storyboard
+                        and App/BridgeViewController.swift are hand-written; SceneDelegate creates the latter
 android/                Capacitor Android project (generated, committed without build output);
                         BackupZipPlugin.java is hand-written and registered in MainActivity
 ```

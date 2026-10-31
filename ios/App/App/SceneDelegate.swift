@@ -8,7 +8,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = scene as? UIWindowScene else { return }
 
         window = UIWindow(windowScene: windowScene)
-        window?.rootViewController = CAPBridgeViewController()
+        // BridgeViewController, not CAPBridgeViewController: the subclass registers
+        // the plugins that live in this project (BackupZip). Main.storyboard is not
+        // used for the root view controller; this is the only place it is created.
+        window?.rootViewController = BridgeViewController()
         window?.makeKeyAndVisible()
 
         SceneDelegateProxy.shared.scene(scene, willConnectTo: session, options: connectionOptions)
