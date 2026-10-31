@@ -119,16 +119,25 @@ HomeKind 1.0 went live on 3 October 2026 at
 
 ## Versions and build numbers
 
-- `CFBundleShortVersionString` (the user-visible version, e.g. `1.0.0`) comes
-  from `MARKETING_VERSION` in `ios/App/App.xcodeproj/project.pbxproj`. Bump
-  this by hand for a version change (and update `package.json`'s `version`,
-  which `src/version.ts` shows in Settings > About).
+- `CFBundleShortVersionString` (the user-visible version, e.g. `1.0.1`) comes
+  from `package.json`'s `version`, the single source for every platform:
+  Codemagic's `Set version and build number` script writes it into the Xcode
+  project with `agvtool new-marketing-version` on every build, Gradle reads it
+  as `versionName`, and `src/version.ts` shows it in Settings > About. The
+  `MARKETING_VERSION` in `ios/App/App.xcodeproj/project.pbxproj` only matters
+  for a local Xcode build; keep it in step when bumping, but Codemagic
+  overwrites it.
+- **Bump the version before the first build after a release.** Once a version
+  is live on the App Store, App Store Connect refuses every further upload
+  carrying it ("must contain a higher version than that of the previously
+  approved version"), however new the build number. The build itself still
+  succeeds; only the final publishing step fails. So the first change after
+  shipping 1.0.x is `npm version patch --no-git-tag-version` (or editing
+  `package.json` by hand), committed with the work.
 - `CFBundleVersion` (the build number, which must be unique per TestFlight
-  upload) is set automatically on every Codemagic build. The `Set build
-number from Codemagic build number` script runs `agvtool new-version -all
-"$BUILD_NUMBER"` inside `ios/App`, where `$BUILD_NUMBER` is Codemagic's own
-  monotonically increasing build counter for the workflow. Nobody needs to
-  bump this by hand.
+  upload) is set automatically on every Codemagic build from `$BUILD_NUMBER`,
+  Codemagic's own monotonically increasing build counter for the workflow.
+  Nobody needs to bump this by hand.
 
 ## Android and Google Play
 

@@ -12,6 +12,7 @@ import { db } from '../src/data/db';
 import { createDevice, updateDevice } from '../src/data/devices';
 import { createMemoryStorage, setStorageForTesting } from '../src/storage';
 import type { Attachment, Device } from '../src/types';
+import { APP_VERSION } from '../src/version';
 
 beforeEach(async () => {
   await db.delete();
@@ -73,7 +74,7 @@ describe('backup', () => {
 
     const plan = await planImport(bytes);
     expect(plan.manifest.format).toBe('homekind-backup');
-    expect(plan.manifest.appVersion).toBe('1.0.0');
+    expect(plan.manifest.appVersion).toBe(APP_VERSION);
     expect(plan.newDevices).toHaveLength(2);
     expect(plan.conflicts).toEqual([]);
     expect(plan.missingFiles).toEqual([]);

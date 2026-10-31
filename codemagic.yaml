@@ -99,12 +99,19 @@ workflows:
       - name: xcode-project use-profiles
         script: xcode-project use-profiles
 
-      - name: Set build number from Codemagic build number
-        # Every TestFlight upload needs a unique CFBundleVersion. Codemagic
-        # exposes a monotonically increasing build number as $BUILD_NUMBER;
-        # agvtool writes it into the Xcode project as CURRENT_PROJECT_VERSION.
+      - name: Set version and build number
+        # The user-visible version (CFBundleShortVersionString) comes from
+        # package.json, the same source the Android build and Settings > About
+        # read, so one edit bumps every platform. App Store Connect refuses any
+        # upload whose version has already been released, so a build after a
+        # release needs that bump first. The build number (CFBundleVersion) must
+        # be unique per TestFlight upload; Codemagic's monotonically increasing
+        # $BUILD_NUMBER is written in as CURRENT_PROJECT_VERSION.
         script: |
+          set -e
+          VERSION=$(node -p "require('./package.json').version")
           cd ios/App
+          agvtool new-marketing-version "$VERSION"
           agvtool new-version -all "$BUILD_NUMBER"
 
       - name: xcode-project build-ipa

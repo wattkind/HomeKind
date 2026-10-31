@@ -1,6 +1,6 @@
 {
   "name": "homekind",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "HomeKind by WattKind AI - a local-only household device and warranty manager.",
   "type": "module",
