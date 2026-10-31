@@ -10,6 +10,9 @@ export interface PickedPhoto {
   ext: string;
 }
 
+/** Longest side, in pixels, of a photo taken or picked in the app. */
+export const MAX_PHOTO_SIDE = 2048;
+
 const MIME_BY_EXT: Record<string, string> = {
   jpg: 'image/jpeg',
   jpeg: 'image/jpeg',
@@ -43,6 +46,11 @@ export async function takeOrPickPhoto(source: 'camera' | 'library'): Promise<Pic
         resultType: CameraResultType.Base64,
         source: source === 'camera' ? CameraSource.Camera : CameraSource.Photos,
         quality: 85,
+        // Cap the longer side. Full-resolution camera photos run to several megabytes
+        // each, which bloats backups for no gain: receipts and manual pages stay
+        // readable at this size.
+        width: MAX_PHOTO_SIDE,
+        height: MAX_PHOTO_SIDE,
       });
       if (!photo.base64String) return null;
       const format = (photo.format || 'jpeg').toLowerCase();

@@ -1,5 +1,6 @@
 import Dexie, { type Table } from 'dexie';
-import type { AttachmentStorage } from '../types';
+import type { AttachmentStorage, AttachmentWriter } from '../types';
+import { concat } from './memory';
 import { attachmentPath, deviceDir } from './paths';
 
 interface StoredFile {
@@ -23,6 +24,19 @@ export function createWebStorage(): AttachmentStorage {
   return {
     async write(deviceId, attachmentId, ext, data) {
       await fdb.files.put({ path: attachmentPath(deviceId, attachmentId, ext), data });
+    },
+    openWriter(deviceId, attachmentId, ext): AttachmentWriter {
+      // The browser build keeps blobs in IndexedDB, which has no append; buffer in memory.
+      const path = attachmentPath(deviceId, attachmentId, ext);
+      const parts: Uint8Array[] = [];
+      return {
+        async append(chunk) {
+          parts.push(new Uint8Array(chunk));
+        },
+        async close() {
+          await fdb.files.put({ path, data: concat(parts) });
+        },
+      };
     },
     async read(deviceId, attachmentId, ext) {
       const path = attachmentPath(deviceId, attachmentId, ext);

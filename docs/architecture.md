@@ -22,8 +22,10 @@ tests/                  Vitest, data layer only (no UI snapshots)
 public/fonts            Nunito and Inter variable TTFs, bundled (no CDN)
 public/brand            approved HomeKind PNG artwork (never redrawn)
 resources/              source mark for @capacitor/assets icon and splash generation
-ios/                    Capacitor iOS project (generated, committed without Pods)
-android/                Capacitor Android project (generated, committed without build output)
+ios/                    Capacitor iOS project (generated, committed without Pods); App/BackupZipPlugin.swift
+                        and App/BridgeViewController.swift are hand-written and registered on Main.storyboard
+android/                Capacitor Android project (generated, committed without build output);
+                        BackupZipPlugin.java is hand-written and registered in MainActivity
 ```
 
 ## Module contracts
@@ -98,8 +100,9 @@ Definitions: `expired` when `warrantyEndDate < today`; `ending-soon` when
 ```ts
 export const BACKUP_FILENAME_PREFIX = 'homekind-backup-'; // + YYYY-MM-DD + .zip
 export function backupFilename(now?: Date): string;
-export function exportBackup(): Promise<{ filename: string; bytes: Uint8Array }>;
-export function planImport(zipBytes: Uint8Array): Promise<ImportPlan>; // throws on invalid zip
+export function exportBackup(): Promise<{ filename: string; bytes: Uint8Array }>; // browser and tests
+export function exportBackupToCache(): Promise<{ filename: string; uri: string }>; // native
+export function planImport(source: Blob | Uint8Array): Promise<ImportPlan>; // throws on invalid zip
 export function applyImport(
   plan: ImportPlan,
   options: { overwriteConflicts: boolean },
@@ -112,9 +115,18 @@ export function applyImport(
 export function deleteAllData(): Promise<void>;
 ```
 
-Zip layout: `data.json` (a `BackupManifest`) plus `attachments/<deviceId>/<attachmentId>.<ext>`.
-Import merges by device id. Conflicts are surfaced in the plan; the UI asks before overwriting.
-Overwriting a device replaces its record and its attachments.
+Zip layout: `data.json` (a `BackupManifest`) plus `attachments/<deviceId>/<attachmentId>.<ext>`,
+all stored uncompressed. Import merges by device id. Conflicts are surfaced in the plan; the UI
+asks before overwriting. Overwriting a device replaces its record and its attachments.
+
+Nothing in this module may hold a whole library in memory. On a phone the web view is killed,
+silently, once an export or restore needs more than roughly a gigabyte, which a library of a
+couple of hundred megabytes reaches when every file is loaded, zipped and base64-encoded at
+once. So on native the zip is built by the `BackupZip` plugin (`src/platform/backupZip.ts`)
+straight from the files on disk, and `planImport`/`applyImport` stream the picked zip through
+fflate's `Unzip`, writing each attachment in pieces through `AttachmentStorage.openWriter`.
+`exportBackup` keeps the in-memory path for the browser build and the tests, and both paths
+produce the same archive.
 
 ### `src/storage/index.ts`
 
@@ -130,8 +142,14 @@ Data modules must call `storage` via this module so tests can swap in memory sto
 
 ```ts
 // share.ts
-export function shareFile(filename: string, bytes: Uint8Array, mimeType: string): Promise<void>;
+export function shareFile(filename: string, bytes: Uint8Array, mimeType: string): Promise<boolean>;
 // native: write to Directory.Cache then Share.share({ files }); web: trigger a download
+export function shareUri(filename: string, uri: string): Promise<boolean>;
+// native: Share.share({ files }) for a file already on disk. Both resolve false when the share
+// sheet was dismissed, so the UI never reports a backup that went nowhere.
+// backupZip.ts
+export const BackupZip: { create(options: BackupZipCreateOptions): Promise<{ skipped: string[] }> };
+// native plugin: streams `files` from disk into a store-only zip at `output`, `data.json` first
 // camera.ts
 export function takeOrPickPhoto(
   source: 'camera' | 'library',

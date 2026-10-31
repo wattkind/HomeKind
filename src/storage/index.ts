@@ -24,6 +24,7 @@ export function setStorageForTesting(s: AttachmentStorage): void {
  */
 export const storage: AttachmentStorage = {
   write: (...args) => getStorage().write(...args),
+  openWriter: (...args) => getStorage().openWriter(...args),
   read: (...args) => getStorage().read(...args),
   delete: (...args) => getStorage().delete(...args),
   deleteAllForDevice: (deviceId) => getStorage().deleteAllForDevice(deviceId),

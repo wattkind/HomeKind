@@ -174,6 +174,55 @@ describe('backup', () => {
     expect(await db.devices.count()).toBe(2);
   });
 
+  describe('streaming', () => {
+    it('restores identically when the zip arrives in tiny chunks', async () => {
+      await seed();
+      const before = await snapshot();
+      const { bytes } = await exportBackup();
+      await deleteAllData();
+      // Chunks far smaller than any entry, so every file is written in many appends and
+      // entry headers straddle chunk boundaries.
+      const plan = await planImport(bytes, { chunkSize: 7 });
+      expect(plan.missingFiles).toEqual([]);
+      const result = await applyImport(plan, { overwriteConflicts: false });
+      expect(result.attachmentsWritten).toBe(4);
+      const after = await snapshot();
+      expect(after.attachments).toStrictEqual(before.attachments);
+      for (const [id, data] of before.bytes) expect(after.bytes.get(id)).toStrictEqual(data);
+    });
+
+    it('reads a picked File (Blob) as well as bytes', async () => {
+      await seed();
+      const { bytes } = await exportBackup();
+      await deleteAllData();
+      const file = new File(
+        [bytes.slice().buffer as ArrayBuffer],
+        'homekind-backup-2026-01-01.zip',
+        {
+          type: 'application/zip',
+        },
+      );
+      const plan = await planImport(file);
+      expect(plan.newDevices).toHaveLength(2);
+      const result = await applyImport(plan, { overwriteConflicts: false });
+      expect(result.attachmentsWritten).toBe(4);
+    });
+
+    it('restores a deflate-compressed backup from an older build', async () => {
+      await seed();
+      const before = await snapshot();
+      const entries = unzipSync((await exportBackup()).bytes);
+      // Earlier builds compressed data.json; attachments have always been stored.
+      const zip = zipSync(entries, { level: 6 });
+      await deleteAllData();
+      const plan = await planImport(zip, { chunkSize: 64 });
+      const result = await applyImport(plan, { overwriteConflicts: false });
+      expect(result.attachmentsWritten).toBe(4);
+      const after = await snapshot();
+      for (const [id, data] of before.bytes) expect(after.bytes.get(id)).toStrictEqual(data);
+    });
+  });
+
   describe('invalid input', () => {
     it('rejects a file that is not a zip', async () => {
       await expect(planImport(strToU8('hello'))).rejects.toThrow(/not a valid zip/);

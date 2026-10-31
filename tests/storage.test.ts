@@ -30,6 +30,22 @@ describe.each([
     await expect(s.read('dev-b', 'att-3', 'jpg')).rejects.toThrow();
   });
 
+  it('writes a file in pieces through a writer', async () => {
+    const s = create();
+    await s.clear();
+    const w = s.openWriter('dev-c', 'att-4', 'pdf');
+    await w.append(bytes.subarray(0, 100));
+    await w.append(new Uint8Array(0));
+    await w.append(bytes.subarray(100));
+    await expect(s.read('dev-c', 'att-4', 'pdf')).rejects.toThrow();
+    await w.close();
+    expect(await s.read('dev-c', 'att-4', 'pdf')).toEqual(bytes);
+
+    const empty = s.openWriter('dev-c', 'att-5', 'jpg');
+    await empty.close();
+    expect(await s.read('dev-c', 'att-5', 'jpg')).toEqual(new Uint8Array(0));
+  });
+
   it('refuses unsafe path segments', async () => {
     await expect(create().write('../x', 'a', 'jpg', bytes)).rejects.toThrow(/Unsafe/);
   });
